@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserRole } from './user-role.enum';
 import { Place } from '@/src/places/entities/place.entity';
+import { Performance } from '@/src/performances/entities/performance.entity';
 
 @Entity('users')
 export class User {
@@ -18,4 +19,7 @@ export class User {
 
   @OneToMany(() => Place, (place) => place.user)
   places: Place[];
+
+  @OneToMany(() => Performance, (performance) => performance.user)
+  performance: Performance;
 }
