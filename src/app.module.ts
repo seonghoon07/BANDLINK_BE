@@ -6,9 +6,10 @@ import { typeOrmModuleOptions } from './configs/typeorm.config';
 import { UsersModule } from './users/users.module';
 import { PlaceModule } from './places/place.module';
 import { PerformanceModule } from '@/src/performances/performance.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(typeOrmModuleOptions), UsersModule, PlaceModule, PerformanceModule],
+  imports: [TypeOrmModule.forRoot(typeOrmModuleOptions), UsersModule, PlaceModule, PerformanceModule, RoomModule],
   controllers: [AppController],
   providers: [AppService],
 })

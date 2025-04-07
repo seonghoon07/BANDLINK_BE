@@ -1,5 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '@/src/users/entities/user.entity';
+import { Room } from '@/src/room/entities/room.entity';
 
 @Entity('performances')
 export class Performance {
@@ -26,4 +27,10 @@ export class Performance {
 
   @ManyToOne(() => User, (user) => user.performance)
   user: User;
+
+  @ManyToOne(() => Room, (room) => room.performances)
+  room: Room;
+
+  @Column()
+  room_id: number;
 }
