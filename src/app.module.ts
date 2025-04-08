@@ -9,9 +9,23 @@ import { PerformanceModule } from '@/src/performances/performance.module';
 import { RoomModule } from './room/room.module';
 import { PerformanceReservationModule } from '@/src/performanceReservation/performanceReservation.module';
 import { RoomReservationModule } from '@/src/roomReservation/roomReservation.module';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from '@/src/auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(typeOrmModuleOptions), UsersModule, PlaceModule, PerformanceModule, RoomModule, PerformanceReservationModule, RoomReservationModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRoot(typeOrmModuleOptions),
+    UsersModule,
+    PlaceModule,
+    PerformanceModule,
+    RoomModule,
+    PerformanceReservationModule,
+    RoomReservationModule,
+    AuthModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
