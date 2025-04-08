@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { PerformanceService } from './performance.service';
 import { PerformanceController } from './performance.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Place } from '@/src/places/entities/place.entity';
+import { Performance } from '@/src/performances/entities/performance.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Place])],
+  imports: [TypeOrmModule.forFeature([Performance])],
   controllers: [PerformanceController],
   providers: [PerformanceService],
 })

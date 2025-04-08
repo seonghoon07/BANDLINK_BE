@@ -1,6 +1,14 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from '@/src/users/entities/user.entity';
 import { Room } from '@/src/room/entities/room.entity';
+import { PerformanceReservation } from '@/src/performanceReservation/entities/performanceReservation.entity';
 
 @Entity('performances')
 export class Performance {
@@ -22,15 +30,15 @@ export class Performance {
   @Column()
   price: number;
 
-  @Column()
-  user_id: number;
-
   @ManyToOne(() => User, (user) => user.performance)
   user: User;
 
-  @ManyToOne(() => Room, (room) => room.performances)
+  @OneToOne(() => Room, (room) => room.performances, { nullable: true })
   room: Room;
 
-  @Column()
-  room_id: number;
+  @OneToMany(
+    () => PerformanceReservation,
+    (reservation) => reservation.performance,
+  )
+  reservations: PerformanceReservation[];
 }

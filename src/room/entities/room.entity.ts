@@ -3,10 +3,12 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Place } from '@/src/places/entities/place.entity';
 import { Performance } from '@/src/performances/entities/performance.entity';
+import { RoomReservation } from '@/src/roomReservation/entities/roomReservation.entity';
 
 @Entity('rooms')
 export class Room {
@@ -19,15 +21,14 @@ export class Room {
   @Column()
   price: number;
 
-  @Column()
-  place_id: number;
-
-  @Column()
-  performance_id: number;
-
   @ManyToOne(() => Place, (place) => place.rooms)
   place: Place;
 
-  @OneToMany(() => Performance, (performance) => performance.room)
+  @OneToMany(() => RoomReservation, (reservation) => reservation.room)
+  roomReservation: RoomReservation[];
+
+  @OneToOne(() => Performance, (performance) => performance.room, {
+    nullable: true,
+  })
   performances: Performance[];
 }
