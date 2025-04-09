@@ -37,20 +37,37 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  googleLoginCallback(@Req() req: Request, @Res() res: Response): void {
-    const user = req.user as GoogleJwtUser;
-    const jwt = user.jwt;
+  async googleLoginCallback(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const user = req.user as {
+      jwt: string;
+      refreshToken: string;
+      user: {
+        id: string;
+        email: string;
+        name: string;
+      };
+    };
 
-    const successRedirect = `${this.configService.get<string>('FRONTEND_REDIRECT_SUCCESS')}?token=${jwt}`;
-    const failureRedirect =
-      this.configService.get<string>('FRONTEND_REDIRECT_FAILURE') ??
-      'http://localhost:5173/login/failure';
+    await this.usersService.saveRefreshToken(
+      Number(user.user.id),
+      user.refreshToken,
+    );
 
-    if (jwt) res.redirect(successRedirect);
-    else res.redirect(failureRedirect);
+    if (user?.jwt) {
+      const redirectUrl = `${this.configService.get<string>('FRONTEND_REDIRECT_SUCCESS')}?accessToken=${user.jwt}&refreshToken=${user.refreshToken}`;
+      res.redirect(redirectUrl);
+    } else {
+      const failureUrl =
+        this.configService.get<string>('FRONTEND_REDIRECT_FAILURE') ??
+        'http://localhost:5173/login/failure';
+      res.redirect(failureUrl);
+    }
   }
 
-  @Post('refresh')
+  @Post()
   async refreshAccessToken(
     @Body() refreshTokenDto: RefreshTokenDto,
   ): Promise<{ accessToken: string }> {
