@@ -17,10 +17,6 @@ import { RefreshTokenDto } from '@/src/auth/dto/refresh-token.dto';
 import { AuthService } from '@/src/auth/auth.service';
 import { GoogleAuthService } from '@/src/auth/google-auth.service';
 
-interface GoogleJwtUser {
-  jwt: string;
-}
-
 @Controller('auth')
 export class AuthController {
   constructor(
