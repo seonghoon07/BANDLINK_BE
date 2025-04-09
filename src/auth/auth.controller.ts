@@ -1,7 +1,21 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from '@/src/users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { RefreshTokenDto } from '@/src/auth/dto/refresh-token.dto';
+import { AuthService } from '@/src/auth/auth.service';
+import { GoogleAuthService } from '@/src/auth/google-auth.service';
 
 interface GoogleJwtUser {
   jwt: string;
@@ -9,7 +23,13 @@ interface GoogleJwtUser {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+    private readonly authService: AuthService,
+    private readonly googleAuthService: GoogleAuthService,
+  ) {}
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -30,12 +50,67 @@ export class AuthController {
     else res.redirect(failureRedirect);
   }
 
-  @Get('protected')
-  @UseGuards(AuthGuard('jwt'))
-  getProtected(@Req() req: Request) {
+  @Post('refresh')
+  async refreshAccessToken(
+    @Body() refreshTokenDto: RefreshTokenDto,
+  ): Promise<{ accessToken: string }> {
+    const { refreshToken } = refreshTokenDto;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is required.');
+    }
+
+    let payload: { sub: string; email: string };
+
+    try {
+      payload = this.jwtService.verify<{ sub: string; email: string }>(
+        refreshToken,
+        {
+          secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+        },
+      );
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token.');
+    }
+
+    const isValid = await this.usersService.verifyRefreshToken(
+      Number(payload.sub),
+      refreshToken,
+    );
+
+    if (!isValid) {
+      throw new UnauthorizedException('Refresh token does not match.');
+    }
+
+    const newAccessToken = this.jwtService.sign(
+      {
+        sub: payload.sub,
+        email: payload.email,
+      },
+      {
+        secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+        expiresIn: '15m',
+      },
+    );
+
+    return { accessToken: newAccessToken };
+  }
+
+  @Post()
+  async login(@Body('code') code: string) {
+    const user = await this.googleAuthService.getUserInfoFromCode(code);
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+    };
+
+    const accessToken = this.authService.generateAccessToken(payload);
+    const refreshToken = this.authService.generateRefreshToken(payload);
+
     return {
-      message: '✅ 이건 로그인한 사람만 볼 수 있어요',
-      user: req.user,
+      accessToken,
+      refreshToken,
     };
   }
 }

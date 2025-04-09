@@ -1,26 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { redisClient } from '@/src/redis/redis.provider';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async saveRefreshToken(userId: number, token: string): Promise<void> {
+    const key = `refresh:${userId}`;
+    await redisClient.set(key, token, 'EX', 60 * 60 * 24 * 14);
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async verifyRefreshToken(userId: number, token: string): Promise<boolean> {
+    const key = `refresh:${userId}`;
+    const stored = await redisClient.get(key);
+    return stored === token;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async removeRefreshToken(userId: number): Promise<void> {
+    const key = `refresh:${userId}`;
+    await redisClient.del(key);
   }
 }

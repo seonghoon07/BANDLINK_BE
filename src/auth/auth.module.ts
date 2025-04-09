@@ -5,10 +5,13 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from '@/src/auth/strategies/google.strategy';
+import { GoogleAuthService } from '@/src/auth/google-auth.service';
+import { UsersModule } from '@/src/users/users.module';
 
 @Module({
   imports: [
     ConfigModule,
+    UsersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
@@ -19,6 +22,6 @@ import { GoogleStrategy } from '@/src/auth/strategies/google.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtStrategy],
+  providers: [AuthService, GoogleAuthService, GoogleStrategy, JwtStrategy],
 })
 export class AuthModule {}
