@@ -1,8 +1,8 @@
 import {
-  Body,
   Controller,
   Get,
   Post,
+  Body,
   Req,
   Res,
   UnauthorizedException,
@@ -37,9 +37,7 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
-    const user = req.user as {
-      jwt: string;
-      refreshToken: string;
+    const googleUser = req.user as {
       user: {
         id: string;
         email: string;
@@ -47,30 +45,35 @@ export class AuthController {
       };
     };
 
-    await this.usersService.saveRefreshToken(
-      Number(user.user.id),
-      user.refreshToken,
-    );
+    const payload = {
+      sub: googleUser.user.id,
+      email: googleUser.user.email,
+    };
 
-    if (user?.jwt) {
-      const redirectUrl = `${this.configService.get<string>('FRONTEND_REDIRECT_SUCCESS')}?accessToken=${user.jwt}&refreshToken=${user.refreshToken}`;
-      res.redirect(redirectUrl);
-    } else {
-      const failureUrl =
-        this.configService.get<string>('FRONTEND_REDIRECT_FAILURE') ??
-        'http://localhost:5173/login/failure';
-      res.redirect(failureUrl);
-    }
+    const accessToken = this.authService.generateAccessToken(payload);
+    const refreshToken = this.authService.generateRefreshToken(payload);
+
+    await this.usersService.saveRefreshToken(Number(payload.sub), refreshToken);
+
+    const successRedirect = `${this.configService.get<string>(
+      'FRONTEND_REDIRECT_SUCCESS',
+    )}?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+
+    return res.redirect(successRedirect);
   }
 
-  @Post()
+  @Post('refresh')
   async refreshAccessToken(
     @Body() refreshTokenDto: RefreshTokenDto,
   ): Promise<{ accessToken: string }> {
     const { refreshToken } = refreshTokenDto;
 
     if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token is required.');
+      throw new UnauthorizedException({
+        statusCode: 401,
+        errorCode: '401-0',
+        message: 'Refresh token is required.',
+      });
     }
 
     let payload: { sub: string; email: string };
@@ -82,8 +85,20 @@ export class AuthController {
           secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
         },
       );
-    } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token.');
+    } catch (err) {
+      if (err instanceof Error && err.name === 'TokenExpiredError') {
+        throw new UnauthorizedException({
+          statusCode: 401,
+          errorCode: '401-1',
+          message: 'Refresh token expired',
+        });
+      }
+
+      throw new UnauthorizedException({
+        statusCode: 401,
+        errorCode: '401-0',
+        message: 'Invalid refresh token',
+      });
     }
 
     const isValid = await this.usersService.verifyRefreshToken(
@@ -92,38 +107,18 @@ export class AuthController {
     );
 
     if (!isValid) {
-      throw new UnauthorizedException('Refresh token does not match.');
+      throw new UnauthorizedException({
+        statusCode: 401,
+        errorCode: '401-2',
+        message: 'Refresh token does not match.',
+      });
     }
 
-    const newAccessToken = this.jwtService.sign(
-      {
-        sub: payload.sub,
-        email: payload.email,
-      },
-      {
-        secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-        expiresIn: '15m',
-      },
-    );
+    const newAccessToken = this.authService.generateAccessToken({
+      sub: payload.sub,
+      email: payload.email,
+    });
 
     return { accessToken: newAccessToken };
-  }
-
-  @Post()
-  async login(@Body('code') code: string) {
-    const user = await this.googleAuthService.getUserInfoFromCode(code);
-
-    const payload = {
-      sub: user.id,
-      email: user.email,
-    };
-
-    const accessToken = this.authService.generateAccessToken(payload);
-    const refreshToken = this.authService.generateRefreshToken(payload);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
   }
 }

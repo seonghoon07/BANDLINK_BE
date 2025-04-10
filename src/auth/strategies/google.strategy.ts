@@ -21,44 +21,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  validate(
-    accessToken: string,
-    _refreshToken: string,
-    profile: Profile,
-  ): {
-    jwt: string;
-    refreshToken: string;
-    user: {
-      id: string;
-      email: string;
-      name: string;
-    };
-  } {
+  validate(accessToken: string, refreshToken: string, profile: Profile): any {
     const email = profile.emails?.[0]?.value;
-    const name = profile.displayName ?? 'Unknown';
+    const name = profile.displayName;
 
-    if (!email) {
-      throw new UnauthorizedException('No email found in Google profile');
-    }
-
-    const payload = {
-      sub: profile.id,
-      email,
-    };
-
-    const jwtToken = this.jwtService.sign(payload, {
-      secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      expiresIn: '15m',
-    });
-
-    const refreshJwt = this.jwtService.sign(payload, {
-      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
-      expiresIn: '14d',
-    });
+    if (!email) throw new UnauthorizedException('No email in profile');
 
     return {
-      jwt: jwtToken,
-      refreshToken: refreshJwt,
       user: {
         id: profile.id,
         email,
