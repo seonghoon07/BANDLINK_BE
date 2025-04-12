@@ -7,6 +7,7 @@ import {
   Res,
   UnauthorizedException,
   UseGuards,
+  ConflictException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
@@ -16,6 +17,11 @@ import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenDto } from '@/src/auth/dto/refresh-token.dto';
 import { AuthService } from '@/src/auth/auth.service';
 import { GoogleAuthService } from '@/src/auth/google-auth.service';
+
+interface RegisterUserDto {
+  nickname: string;
+  roles: ('FAN' | 'BAND' | 'PLACE_OWNER')[];
+}
 
 @Controller('auth')
 export class AuthController {
@@ -120,5 +126,28 @@ export class AuthController {
     });
 
     return { accessToken: newAccessToken };
+  }
+
+  @Post('register')
+  @UseGuards(AuthGuard('jwt'))
+  async registerUser(
+    @Body() body: RegisterUserDto,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    const user = req.user as { email: string; sub: string };
+    console.log('🔥 [registerUser] req.user =', req.user);
+
+    const exists = await this.usersService.findByEmail(user.email);
+    if (exists) {
+      throw new ConflictException('이미 가입된 사용자입니다');
+    }
+
+    await this.usersService.createUser({
+      email: user.email,
+      nickname: body.nickname,
+      roles: body.roles,
+    });
+
+    return { message: '회원가입 완료' };
   }
 }
