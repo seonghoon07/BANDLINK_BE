@@ -2,14 +2,10 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-google-oauth20';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID', ''),
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET', ''),

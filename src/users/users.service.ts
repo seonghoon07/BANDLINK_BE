@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { redisClient } from '@/src/redis/redis.provider';
+import { User } from '@/src/users/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
+
   async saveRefreshToken(userId: number, token: string): Promise<void> {
     const key = `refresh:${userId}`;
     await redisClient.set(key, token, 'EX', 60 * 60 * 24 * 14);
@@ -14,8 +22,16 @@ export class UsersService {
     return stored === token;
   }
 
-  async removeRefreshToken(userId: number): Promise<void> {
-    const key = `refresh:${userId}`;
-    await redisClient.del(key);
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
+  async createUser(userData: {
+    email: string;
+    nickname: string;
+    roles: ('FAN' | 'BAND' | 'PLACE_OWNER')[];
+  }): Promise<User> {
+    const user = this.userRepository.create(userData);
+    return this.userRepository.save(user);
   }
 }
