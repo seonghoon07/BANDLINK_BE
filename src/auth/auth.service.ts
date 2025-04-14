@@ -26,7 +26,7 @@ export class AuthService {
   generateAccessToken(payload: JwtPayload): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      expiresIn: '5s',
+      expiresIn: '15m',
     });
   }
 
@@ -115,7 +115,7 @@ export class AuthService {
       { sub: payload.sub, email: payload.email },
       {
         secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-        expiresIn: '10s',
+        expiresIn: '15m',
       },
     );
     return { accessToken: newAccessToken };

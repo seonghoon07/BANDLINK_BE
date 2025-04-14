@@ -3,7 +3,7 @@ import { redisClient } from '@/src/redis/redis.provider';
 import { User } from '@/src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UpdateUserDto } from '@/src/users/dto/update-user.dto';
+import { UpdateUserRoleDto } from '@/src/users/dto/updateUserRole.dto';
 
 @Injectable()
 export class UsersService {
@@ -37,17 +37,24 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async updateUser(id: number, dto: UpdateUserDto): Promise<User> {
-    if (dto.bandname && !dto.roles?.includes('BAND')) {
-      dto.roles = [...(dto.roles ?? []), 'BAND'];
+  async addRoleAndBandname(
+    userId: number,
+    dto: UpdateUserRoleDto,
+  ): Promise<User> {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException('User not found');
+
+    const alreadyHasRole = user.roles.includes(dto.role);
+    if (alreadyHasRole) return user;
+
+    if (!user.roles.includes(dto.role)) {
+      user.roles.push(dto.role);
     }
 
-    await this.userRepository.update(id, dto);
-
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+    if (dto.role === 'BAND' && dto.bandname) {
+      user.bandname = dto.bandname;
     }
-    return user;
+
+    return this.userRepository.save(user);
   }
 }

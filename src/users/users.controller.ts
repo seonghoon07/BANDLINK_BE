@@ -1,6 +1,6 @@
 import { Body, Controller, Patch, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@/src/auth/guards/jwt-auth.guard';
-import { UpdateUserDto } from '@/src/users/dto/update-user.dto';
+import { UpdateUserRoleDto } from '@/src/users/dto/updateUserRole.dto';
 import { UsersService } from '@/src/users/users.service';
 
 interface AuthenticatedRequest extends Request {
@@ -11,12 +11,11 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly userService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Patch('me')
-  async updateMe(@Req() req: AuthenticatedRequest, @Body() dto: UpdateUserDto) {
-    const userId = req.user.id;
-    return this.userService.updateUser(userId, dto);
+  @Patch('me/role')
+  updateRole(@Req() req: AuthenticatedRequest, @Body() dto: UpdateUserRoleDto) {
+    return this.usersService.addRoleAndBandname(req.user.id, dto);
   }
 }
