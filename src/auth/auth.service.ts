@@ -8,15 +8,11 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UsersService } from '@/src/users/users.service';
+import { RegisterUserDto } from '@/src/auth/dto/registerUser.dto';
 
 interface JwtPayload {
   sub: string;
   email: string;
-}
-
-interface RegisterUserDto {
-  nickname: string;
-  roles: ('FAN' | 'BAND' | 'PLACE_OWNER')[];
 }
 
 @Injectable()
@@ -30,7 +26,7 @@ export class AuthService {
   generateAccessToken(payload: JwtPayload): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      expiresIn: '15m',
+      expiresIn: '5s',
     });
   }
 
@@ -115,12 +111,18 @@ export class AuthService {
       });
     }
 
-    const newAccessToken = this.generateAccessToken(payload);
+    const newAccessToken = this.jwtService.sign(
+      { sub: payload.sub, email: payload.email },
+      {
+        secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+        expiresIn: '10s',
+      },
+    );
     return { accessToken: newAccessToken };
   }
 
   async registerUser(
-    body: RegisterUserDto,
+    dto: RegisterUserDto,
     req: Request,
   ): Promise<{ message: string }> {
     const user = req.user as { email: string; sub: string };
@@ -130,11 +132,14 @@ export class AuthService {
       throw new ConflictException('이미 가입된 사용자입니다');
     }
 
-    await this.usersService.createUser({
+    const userData = {
       email: user.email,
-      nickname: body.nickname,
-      roles: body.roles,
-    });
+      nickname: dto.nickname,
+      roles: [dto.role],
+      ...(dto.role === 'BAND' && { bandname: dto.bandname }),
+    };
+
+    await this.usersService.createUser(userData);
 
     return { message: '회원가입 완료' };
   }

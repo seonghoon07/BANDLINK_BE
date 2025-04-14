@@ -1,20 +1,22 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Patch, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@/src/auth/guards/jwt-auth.guard';
+import { UpdateUserDto } from '@/src/users/dto/update-user.dto';
+import { UsersService } from '@/src/users/users.service';
 
 interface AuthenticatedRequest extends Request {
   user: {
-    sub: string;
-    email: string;
+    id: number;
   };
 }
 
 @Controller('users')
 export class UsersController {
-  constructor() {}
+  constructor(private readonly userService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get('me')
-  getMe(@Req() req: AuthenticatedRequest) {
-    return req.user;
+  @Patch('me')
+  async updateMe(@Req() req: AuthenticatedRequest, @Body() dto: UpdateUserDto) {
+    const userId = req.user.id;
+    return this.userService.updateUser(userId, dto);
   }
 }
