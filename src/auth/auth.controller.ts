@@ -11,11 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { RefreshTokenDto } from '@/src/auth/dto/refresh-token.dto';
 import { AuthService } from '@/src/auth/auth.service';
-
-interface RegisterUserDto {
-  nickname: string;
-  roles: ('FAN' | 'BAND' | 'PLACE_OWNER')[];
-}
+import { RegisterUserDto } from '@/src/auth/dto/registerUser.dto';
 
 @Controller('auth')
 export class AuthController {

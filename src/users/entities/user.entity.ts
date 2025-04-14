@@ -21,6 +21,9 @@ export class User {
   @Column({ length: 255, unique: true })
   email: string;
 
+  @Column({ nullable: true })
+  bandname: string;
+
   @Column({ type: 'enum', enum: ['FAN', 'BAND', 'PLACE_OWNER'], array: true })
   roles: ('FAN' | 'BAND' | 'PLACE_OWNER')[];
 

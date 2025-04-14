@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { redisClient } from '@/src/redis/redis.provider';
 import { User } from '@/src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UpdateUserRoleDto } from '@/src/users/dto/updateUserRole.dto';
 
 @Injectable()
 export class UsersService {
@@ -26,12 +31,42 @@ export class UsersService {
     return this.userRepository.findOne({ where: { email } });
   }
 
+  async findById(id: number): Promise<User | null> {
+    return this.userRepository.findOne({ where: { id } });
+  }
+
   async createUser(userData: {
     email: string;
     nickname: string;
     roles: ('FAN' | 'BAND' | 'PLACE_OWNER')[];
+    bandname?: string;
   }): Promise<User> {
     const user = this.userRepository.create(userData);
+    return this.userRepository.save(user);
+  }
+
+  async addRoleAndBandname(
+    userId: number,
+    dto: UpdateUserRoleDto,
+  ): Promise<User> {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException('User not found');
+
+    const alreadyHasRole = user.roles.includes(dto.role);
+    if (alreadyHasRole) return user;
+
+    if (dto.role === 'BAND' && !dto.bandname) {
+      throw new BadRequestException(
+        'BAND 역할을 추가하려면 bandname이 필요합니다.',
+      );
+    }
+
+    user.roles.push(dto.role);
+
+    if (dto.role === 'BAND') {
+      user.bandname = dto.bandname!;
+    }
+
     return this.userRepository.save(user);
   }
 }
