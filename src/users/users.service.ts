@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { redisClient } from '@/src/redis/redis.provider';
 import { User } from '@/src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -51,12 +55,16 @@ export class UsersService {
     const alreadyHasRole = user.roles.includes(dto.role);
     if (alreadyHasRole) return user;
 
-    if (!user.roles.includes(dto.role)) {
-      user.roles.push(dto.role);
+    if (dto.role === 'BAND' && !dto.bandname) {
+      throw new BadRequestException(
+        'BAND 역할을 추가하려면 bandname이 필요합니다.',
+      );
     }
 
-    if (dto.role === 'BAND' && dto.bandname) {
-      user.bandname = dto.bandname;
+    user.roles.push(dto.role);
+
+    if (dto.role === 'BAND') {
+      user.bandname = dto.bandname!;
     }
 
     return this.userRepository.save(user);
