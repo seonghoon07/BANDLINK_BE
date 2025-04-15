@@ -1,26 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { CreatePlaceDto } from './dto/create-place.dto';
-import { UpdatePlaceDto } from './dto/update-place.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Place } from '@/src/places/entities/place.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class PlaceService {
-  create(createPlaceDto: CreatePlaceDto) {
-    return 'This action adds a new places';
-  }
-
-  findAll() {
-    return `This action returns all place`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} place`;
-  }
-
-  update(id: number, updatePlaceDto: UpdatePlaceDto) {
-    return `This action updates a #${id} place`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} place`;
+  constructor(
+    @InjectRepository(Place)
+    private readonly placesRepository: Repository<Place>,
+  ) {}
+  async getRecommendedPlaces(): Promise<Place[]> {
+    return await this.placesRepository
+      .createQueryBuilder('place')
+      .where('place.isRecommended = :isRecommended', { isRecommended: true })
+      .limit(5)
+      .getMany();
   }
 }

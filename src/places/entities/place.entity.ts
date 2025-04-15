@@ -22,7 +22,7 @@ export class Place {
   @Column({ length: 5 })
   type: string;
 
-  @Column({ length: 100, name: 'business_registration_number' })
+  @Column({ length: 100, name: 'businessRegistrationNumber' })
   businessRegistrationNumber: string;
 
   @Column({ default: false })
