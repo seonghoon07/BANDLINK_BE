@@ -6,7 +6,7 @@ import { typeOrmModuleOptions } from './configs/typeorm.config';
 import { UsersModule } from './users/users.module';
 import { PlaceModule } from './places/place.module';
 import { PerformanceModule } from '@/src/performances/performance.module';
-import { RoomModule } from './room/room.module';
+import { RoomsModule } from '@/src/rooms/rooms.module';
 import { PerformanceReservationModule } from '@/src/performanceReservation/performanceReservation.module';
 import { RoomReservationModule } from '@/src/roomReservation/roomReservation.module';
 import { ConfigModule } from '@nestjs/config';
@@ -21,7 +21,7 @@ import { AuthModule } from '@/src/auth/auth.module';
     UsersModule,
     PlaceModule,
     PerformanceModule,
-    RoomModule,
+    RoomsModule,
     PerformanceReservationModule,
     RoomReservationModule,
     AuthModule,

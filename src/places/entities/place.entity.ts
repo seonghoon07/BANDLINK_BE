@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/src/users/entities/user.entity';
-import { Room } from '@/src/room/entities/room.entity';
+import { Room } from '@/src/rooms/entities/rooms.entity';
 
 @Entity('places')
 export class Place {

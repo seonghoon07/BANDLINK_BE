@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Room } from '@/src/room/entities/room.entity';
+import { Room } from '@/src/rooms/entities/rooms.entity';
 import { User } from '@/src/users/entities/user.entity';
 
 @Entity('room_reservation')

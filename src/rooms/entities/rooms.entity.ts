@@ -21,6 +21,9 @@ export class Room {
   @Column()
   price: number;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  imageUrl: string;
+
   @ManyToOne(() => Place, (place) => place.rooms)
   place: Place;
 
