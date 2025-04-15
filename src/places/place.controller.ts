@@ -11,4 +11,10 @@ export class PlaceController {
   getRecommendedPlaces() {
     return this.placeService.getRecommendedPlaces();
   }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  getPlaces() {
+    return this.placeService.getPlaces();
+  }
 }
