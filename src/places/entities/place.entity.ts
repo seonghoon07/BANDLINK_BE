@@ -25,6 +25,9 @@ export class Place {
   @Column({ length: 100, name: 'business_registration_number' })
   businessRegistrationNumber: string;
 
+  @Column({ default: false })
+  isRecommended: boolean;
+
   @ManyToOne(() => User, (user) => user.place)
   user: User;
 
