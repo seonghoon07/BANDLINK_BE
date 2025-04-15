@@ -14,13 +14,13 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Patch('me/role')
+  @Patch('role')
   updateRole(@Req() req: AuthenticatedRequest, @Body() dto: UpdateUserRoleDto) {
     return this.usersService.addRoleAndBandname(req.user.id, dto);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('me')
+  @Get()
   getMe(@Req() req: AuthenticatedRequest) {
     return this.usersService.findById(req.user.id);
   }
