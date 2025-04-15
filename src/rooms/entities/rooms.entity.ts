@@ -18,6 +18,9 @@ export class Room {
   @Column({ length: 20 })
   name: string;
 
+  @Column({ length: 255, nullable: true })
+  introdution: string;
+
   @Column()
   price: number;
 
