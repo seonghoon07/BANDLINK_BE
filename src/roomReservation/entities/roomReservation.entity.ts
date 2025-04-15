@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Room } from '@/src/rooms/entities/rooms.entity';
+import { Room } from '@/src/rooms/entities/room.entity';
 import { User } from '@/src/users/entities/user.entity';
 
 @Entity('room_reservation')
@@ -14,8 +14,11 @@ export class RoomReservation {
   band: User;
 
   @Column({ type: 'timestamp' })
-  startTime: Date;
+  startDate: Date;
 
   @Column({ type: 'timestamp' })
-  endTime: Date;
+  endDate: Date;
+
+  @Column({ default: false })
+  isConfirmed: boolean;
 }

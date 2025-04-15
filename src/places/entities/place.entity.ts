@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/src/users/entities/user.entity';
-import { Room } from '@/src/rooms/entities/rooms.entity';
+import { Room } from '@/src/rooms/entities/room.entity';
 
 @Entity('places')
 export class Place {
@@ -27,6 +27,9 @@ export class Place {
 
   @Column({ default: false })
   isRecommended: boolean;
+
+  @Column('simple-array', { nullable: true })
+  businessDays: string[];
 
   @ManyToOne(() => User, (user) => user.place)
   user: User;
