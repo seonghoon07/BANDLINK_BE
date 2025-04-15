@@ -21,4 +21,12 @@ export class PlaceService {
   async getPlaces(): Promise<Place[]> {
     return await this.placesRepository.find();
   }
+
+  async getPlaceById(id: number): Promise<Place | null> {
+    return await this.placesRepository
+      .createQueryBuilder('place')
+      .leftJoinAndSelect('place.rooms', 'room')
+      .where('place.id = :id', { id })
+      .getOne();
+  }
 }
