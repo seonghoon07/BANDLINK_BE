@@ -2,7 +2,7 @@ import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { JwtAuthGuard } from '@/src/auth/guards/jwt-auth.guard';
 
-@Controller('room')
+@Controller('rooms')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
