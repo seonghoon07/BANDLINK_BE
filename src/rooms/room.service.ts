@@ -24,9 +24,7 @@ export class RoomService {
       relations: ['place'],
     });
 
-    if (!room) {
-      throw new NotFoundException('Room not found');
-    }
+    if (!room) throw new NotFoundException('Room not found');
 
     return {
       imageUrl: room.imageUrl,
@@ -34,6 +32,7 @@ export class RoomService {
       description: room.description,
       price: room.price,
       additionDescription: room.additionalDescription,
+      businessDays: room.place.businessDays,
     };
   }
 }

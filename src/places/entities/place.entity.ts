@@ -28,7 +28,7 @@ export class Place {
   @Column({ default: false })
   isRecommended: boolean;
 
-  @Column('simple-array', { nullable: true })
+  @Column('simple-json', { nullable: true })
   businessDays: string[];
 
   @ManyToOne(() => User, (user) => user.place)
