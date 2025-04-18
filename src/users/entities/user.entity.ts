@@ -36,6 +36,6 @@ export class User {
   @OneToMany(() => PerformanceReservation, (reservation) => reservation.user)
   reservations: PerformanceReservation[];
 
-  @OneToMany(() => RoomReservation, (reservation) => reservation.band)
+  @OneToMany(() => RoomReservation, (reservation) => reservation.reservedBy)
   roomReservations: RoomReservation[];
 }

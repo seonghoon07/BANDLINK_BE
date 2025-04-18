@@ -1,6 +1,16 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { RoomService } from './room.service';
 import { JwtAuthGuard } from '@/src/auth/guards/jwt-auth.guard';
+import { Request } from 'express';
 
 @Controller('rooms')
 export class RoomController {
@@ -23,6 +33,23 @@ export class RoomController {
       roomId,
       Number(year),
       Number(month),
+    );
+  }
+
+  @Post(':id/reserve')
+  @UseGuards(JwtAuthGuard)
+  async reserveRoom(
+    @Param('id') roomId: number,
+    @Body() body: { startDate: string; endDate: string },
+    @Req() req: Request,
+  ): Promise<void> {
+    const userId = (req.user as { id: number }).id;
+
+    await this.roomService.reserveRoom(
+      roomId,
+      userId,
+      new Date(body.startDate),
+      new Date(body.endDate),
     );
   }
 }

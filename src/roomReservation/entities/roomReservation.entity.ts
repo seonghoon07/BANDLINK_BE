@@ -11,7 +11,7 @@ export class RoomReservation {
   room: Room;
 
   @ManyToOne(() => User, (user) => user.reservations)
-  band: User;
+  reservedBy: User;
 
   @Column({ type: 'timestamp' })
   startDate: Date;

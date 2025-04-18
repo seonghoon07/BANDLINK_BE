@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { Room } from '@/src/rooms/entities/room.entity';
 import { RoomReservation } from '@/src/roomReservation/entities/roomReservation.entity';
 import { Place } from '@/src/places/entities/place.entity';
+import { User } from '@/src/users/entities/user.entity';
 
 @Injectable()
 export class RoomService {
@@ -41,9 +46,7 @@ export class RoomService {
     year: number,
     month: number,
   ): Promise<string[]> {
-    const room = await this.roomRepository.findOne({
-      where: { id: roomId },
-    });
+    const room = await this.roomRepository.findOne({ where: { id: roomId } });
     if (!room) throw new NotFoundException('Room not found');
 
     const start = new Date(year, month - 1, 1);
@@ -51,10 +54,14 @@ export class RoomService {
 
     const unavailableDates: string[] = [];
 
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateCopy = new Date(d);
-      const dayStart = new Date(dateCopy.setHours(0, 0, 0, 0));
-      const dayEnd = new Date(dateCopy.setHours(23, 59, 59, 999));
+    for (
+      let time = new Date(start);
+      time <= end;
+      time.setDate(time.getDate() + 1)
+    ) {
+      const d = new Date(time);
+      const dayStart = new Date(d.setHours(0, 0, 0, 0));
+      const dayEnd = new Date(d.setHours(23, 59, 59, 999));
 
       const reservations = await this.roomReservationRepository.find({
         where: {
@@ -68,7 +75,9 @@ export class RoomService {
       for (const res of reservations) {
         const startHour = res.startDate.getHours();
         const endHour = res.endDate.getHours();
-        for (let i = startHour; i < endHour; i++) {
+        const actualEnd = endHour === 0 ? 24 : endHour;
+
+        for (let i = startHour; i < actualEnd; i++) {
           reservedHours.add(i);
         }
       }
@@ -79,5 +88,49 @@ export class RoomService {
     }
 
     return unavailableDates;
+  }
+
+  async reserveRoom(
+    roomId: number,
+    userId: number,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<void> {
+    const room = await this.roomRepository.findOne({ where: { id: roomId } });
+    if (!room) throw new NotFoundException('Room not found');
+
+    const user = await this.placeRepository.manager
+      .getRepository(User)
+      .findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const overlapping = await this.roomReservationRepository.findOne({
+      where: [
+        {
+          room: { id: roomId },
+          isConfirmed: true,
+          startDate: Between(startDate, endDate),
+        },
+        {
+          room: { id: roomId },
+          isConfirmed: true,
+          endDate: Between(startDate, endDate),
+        },
+      ],
+    });
+
+    if (overlapping) {
+      throw new BadRequestException('The selected time is already reserved.');
+    }
+
+    const reservation = this.roomReservationRepository.create({
+      room,
+      reservedBy: user,
+      startDate,
+      endDate,
+      isConfirmed: true,
+    });
+
+    await this.roomReservationRepository.save(reservation);
   }
 }
