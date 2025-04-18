@@ -133,4 +133,46 @@ export class RoomService {
 
     await this.roomReservationRepository.save(reservation);
   }
+
+  async getUnavailableHours(
+    roomId: number,
+    date: string,
+  ): Promise<{ am: number[]; pm: number[] }> {
+    const day = new Date(date);
+    if (isNaN(day.getTime())) throw new BadRequestException('Invalid date');
+
+    const startOfDay = new Date(day.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(day.setHours(23, 59, 59, 999));
+
+    const reservations = await this.roomReservationRepository.find({
+      where: {
+        room: { id: roomId },
+        startDate: Between(startOfDay, endOfDay),
+        isConfirmed: true,
+      },
+    });
+
+    const hours = new Set<number>();
+    for (const res of reservations) {
+      const startHour = res.startDate.getHours();
+      const endHour = res.endDate.getHours();
+      const actualEnd = endHour === 0 ? 24 : endHour;
+
+      for (let i = startHour; i < actualEnd; i++) {
+        hours.add(i);
+      }
+    }
+
+    const am: number[] = [];
+    const pm: number[] = [];
+
+    Array.from(hours)
+      .sort((a, b) => a - b)
+      .forEach((hour) => {
+        if (hour < 12) am.push(hour);
+        else pm.push(hour);
+      });
+
+    return { am, pm };
+  }
 }

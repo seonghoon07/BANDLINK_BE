@@ -52,4 +52,13 @@ export class RoomController {
       new Date(body.endDate),
     );
   }
+
+  @Get(':id/unavailableHours')
+  @UseGuards(JwtAuthGuard)
+  async getUnavailableHours(
+    @Param('id') roomId: number,
+    @Query('date') date: string,
+  ): Promise<{ am: number[]; pm: number[] }> {
+    return this.roomService.getUnavailableHours(roomId, date);
+  }
 }
