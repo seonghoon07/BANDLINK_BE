@@ -18,8 +18,17 @@ export class Room {
   @Column({ length: 20 })
   name: string;
 
+  @Column({ length: 255, nullable: true })
+  description: string;
+
+  @Column({ length: 255, nullable: true })
+  additionalDescription: string;
+
   @Column()
   price: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  imageUrl: string;
 
   @ManyToOne(() => Place, (place) => place.rooms)
   place: Place;

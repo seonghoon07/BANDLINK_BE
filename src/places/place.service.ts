@@ -9,11 +9,24 @@ export class PlaceService {
     @InjectRepository(Place)
     private readonly placesRepository: Repository<Place>,
   ) {}
+
   async getRecommendedPlaces(): Promise<Place[]> {
     return await this.placesRepository
       .createQueryBuilder('place')
       .where('place.isRecommended = :isRecommended', { isRecommended: true })
       .limit(5)
       .getMany();
+  }
+
+  async getPlaces(): Promise<Place[]> {
+    return await this.placesRepository.find();
+  }
+
+  async getPlaceById(id: number): Promise<Place | null> {
+    return await this.placesRepository
+      .createQueryBuilder('place')
+      .leftJoinAndSelect('place.rooms', 'room')
+      .where('place.id = :id', { id })
+      .getOne();
   }
 }

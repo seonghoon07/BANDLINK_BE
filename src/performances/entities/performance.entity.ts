@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/src/users/entities/user.entity';
-import { Room } from '@/src/room/entities/room.entity';
+import { Room } from '@/src/rooms/entities/room.entity';
 import { PerformanceReservation } from '@/src/performanceReservation/entities/performanceReservation.entity';
 
 @Entity('performances')
