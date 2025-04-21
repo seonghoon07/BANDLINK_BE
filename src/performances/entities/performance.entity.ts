@@ -1,9 +1,10 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/src/users/entities/user.entity';
@@ -30,10 +31,14 @@ export class Performance {
   @Column()
   price: number;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
   @ManyToOne(() => User, (user) => user.performance)
+  @JoinColumn({ name: 'userId' })
   user: User;
 
-  @OneToOne(() => Room, (room) => room.performances, { nullable: true })
+  @ManyToOne(() => Room, (room) => room.performances)
   room: Room;
 
   @OneToMany(

@@ -1,34 +1,37 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { PerformanceService } from './performance.service';
-import { CreatePerformanceDto } from './dto/create-performance.dto';
-import { UpdatePerformanceDto } from './dto/update-performance.dto';
+import { JwtAuthGuard } from '@/src/auth/guards/jwt-auth.guard';
+import { Request } from 'express';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '@/src/users/entities/user.entity';
+import { Repository } from 'typeorm';
 
-@Controller('performance')
+@Controller('performances')
 export class PerformanceController {
-  constructor(private readonly performanceService: PerformanceService) {}
-
-  @Post()
-  create(@Body() createPerformanceDto: CreatePerformanceDto) {
-    return this.performanceService.create(createPerformanceDto);
-  }
+  constructor(
+    private readonly performanceService: PerformanceService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
   @Get()
-  findAll() {
-    return this.performanceService.findAll();
-  }
+  @UseGuards(JwtAuthGuard)
+  async getMyPerformances(@Req() req: Request) {
+    const googleUid = (req.user as { userId: string }).userId;
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.performanceService.findOne(+id);
-  }
+    const user = await this.userRepository.findOne({
+      where: { googleUid },
+    });
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePerformanceDto: UpdatePerformanceDto) {
-    return this.performanceService.update(+id, updatePerformanceDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.performanceService.remove(+id);
+    if (!user) {
+      throw new UnauthorizedException('등록되지 않은 사용자입니다.');
+    }
+    return this.performanceService.getMyPerformances(user.id);
   }
 }

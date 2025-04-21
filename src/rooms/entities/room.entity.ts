@@ -36,8 +36,6 @@ export class Room {
   @OneToMany(() => RoomReservation, (reservation) => reservation.room)
   roomReservation: RoomReservation[];
 
-  @OneToOne(() => Performance, (performance) => performance.room, {
-    nullable: true,
-  })
+  @OneToMany(() => Performance, (performance) => performance.room)
   performances: Performance[];
 }

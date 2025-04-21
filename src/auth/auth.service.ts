@@ -125,7 +125,7 @@ export class AuthService {
     dto: RegisterUserDto,
     req: Request,
   ): Promise<{ message: string }> {
-    const user = req.user as { email: string; sub: string };
+    const user = req.user as { email: string; userId: string };
 
     const exists = await this.usersService.findByEmail(user.email);
     if (exists) {
@@ -134,6 +134,7 @@ export class AuthService {
 
     const userData = {
       email: user.email,
+      googleUid: user.userId,
       nickname: dto.nickname,
       roles: [dto.role],
       ...(dto.role === 'BAND' && { bandname: dto.bandname }),

@@ -15,6 +15,9 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'varchar', unique: true })
+  googleUid: string;
+
   @Column()
   nickname: string;
 
