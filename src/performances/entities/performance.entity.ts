@@ -16,6 +16,9 @@ export class Performance {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  posterUrl: string;
+
   @Column({ length: 100 })
   title: string;
 
