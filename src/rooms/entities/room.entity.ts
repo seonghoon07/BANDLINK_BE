@@ -3,7 +3,6 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Place } from '@/src/places/entities/place.entity';
