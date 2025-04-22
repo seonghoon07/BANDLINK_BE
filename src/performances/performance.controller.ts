@@ -16,6 +16,8 @@ import { User } from '@/src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreatePerformanceDto } from '@/src/performances/dto/createPerformance.dto';
+import { RoomReservation } from '@/src/roomReservation/entities/roomReservation.entity';
+import { ReservedRoomDto } from '@/src/performances/dto/reservedRoom.dto';
 
 @Controller('performances')
 export class PerformanceController {
@@ -23,6 +25,8 @@ export class PerformanceController {
     private readonly performanceService: PerformanceService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(RoomReservation)
+    private readonly roomReservationRepository: Repository<RoomReservation>,
   ) {}
 
   @Get()
@@ -49,5 +53,30 @@ export class PerformanceController {
   ) {
     const googleUid = (req.user as { userId: string }).userId;
     return this.performanceService.createPerformance(dto, googleUid);
+  }
+
+  @Get('/reservedRooms')
+  @UseGuards(JwtAuthGuard)
+  async getMyReservedRooms(@Req() req: Request): Promise<ReservedRoomDto[]> {
+    const googleUid = (req.user as { userId: string }).userId;
+
+    const user = await this.userRepository.findOne({
+      where: { googleUid },
+    });
+
+    if (!user) throw new UnauthorizedException();
+
+    const reservations = await this.roomReservationRepository.find({
+      where: { reservedBy: user },
+      relations: ['room', 'room.place'],
+    });
+
+    return reservations.map((r) => ({
+      reservationId: r.id,
+      roomName: r.room.name,
+      address: r.room.place.address,
+      startTime: new Date(r.startDate),
+      endTime: new Date(r.endDate),
+    }));
   }
 }
