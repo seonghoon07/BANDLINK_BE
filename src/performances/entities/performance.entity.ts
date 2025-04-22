@@ -1,9 +1,10 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/src/users/entities/user.entity';
@@ -14,6 +15,9 @@ import { PerformanceReservation } from '@/src/performanceReservation/entities/pe
 export class Performance {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  posterUrl: string;
 
   @Column({ length: 100 })
   title: string;
@@ -30,10 +34,14 @@ export class Performance {
   @Column()
   price: number;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
   @ManyToOne(() => User, (user) => user.performance)
+  @JoinColumn({ name: 'userId' })
   user: User;
 
-  @OneToOne(() => Room, (room) => room.performances, { nullable: true })
+  @ManyToOne(() => Room, (room) => room.performances)
   room: Room;
 
   @OneToMany(

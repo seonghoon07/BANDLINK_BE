@@ -26,7 +26,7 @@ export class AuthService {
   generateAccessToken(payload: JwtPayload): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      expiresIn: '15m',
+      expiresIn: '30m',
     });
   }
 
@@ -115,7 +115,7 @@ export class AuthService {
       { sub: payload.sub, email: payload.email },
       {
         secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-        expiresIn: '15m',
+        expiresIn: '30m',
       },
     );
     return { accessToken: newAccessToken };
@@ -125,7 +125,7 @@ export class AuthService {
     dto: RegisterUserDto,
     req: Request,
   ): Promise<{ message: string }> {
-    const user = req.user as { email: string; sub: string };
+    const user = req.user as { email: string; userId: string };
 
     const exists = await this.usersService.findByEmail(user.email);
     if (exists) {
@@ -134,6 +134,7 @@ export class AuthService {
 
     const userData = {
       email: user.email,
+      googleUid: user.userId,
       nickname: dto.nickname,
       roles: [dto.role],
       ...(dto.role === 'BAND' && { bandname: dto.bandname }),

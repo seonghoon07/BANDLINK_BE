@@ -26,13 +26,16 @@ export class PlaceController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  async getPlaceDetails(@Param('id') id: number) {
-    const place = await this.placeService.getPlaceById(id);
+  async getPlaceDetails(@Param('id') id: string) {
+    const place = await this.placeService.getPlaceById(Number(id));
 
     if (!place) {
       throw new NotFoundException('Place not found');
     }
 
-    return place;
+    return {
+      ...place,
+      businessDays: place.businessDays ?? [],
+    };
   }
 }

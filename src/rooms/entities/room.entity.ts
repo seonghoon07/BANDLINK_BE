@@ -3,7 +3,6 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Place } from '@/src/places/entities/place.entity';
@@ -36,8 +35,6 @@ export class Room {
   @OneToMany(() => RoomReservation, (reservation) => reservation.room)
   roomReservation: RoomReservation[];
 
-  @OneToOne(() => Performance, (performance) => performance.room, {
-    nullable: true,
-  })
+  @OneToMany(() => Performance, (performance) => performance.room)
   performances: Performance[];
 }

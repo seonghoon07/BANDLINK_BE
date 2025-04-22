@@ -40,6 +40,7 @@ export class UsersService {
     nickname: string;
     roles: ('FAN' | 'BAND' | 'PLACE_OWNER')[];
     bandname?: string;
+    googleUid: string;
   }): Promise<User> {
     const user = this.userRepository.create(userData);
     return this.userRepository.save(user);
