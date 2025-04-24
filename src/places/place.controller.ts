@@ -2,11 +2,12 @@ import {
   Controller,
   Get,
   NotFoundException,
-  Param,
+  Param, Req,
   UseGuards,
 } from '@nestjs/common';
 import { PlaceService } from './place.service';
 import { JwtAuthGuard } from '@/src/auth/guards/jwt-auth.guard';
+import { Request } from 'express';
 
 @Controller('places')
 export class PlaceController {
@@ -22,6 +23,13 @@ export class PlaceController {
   @UseGuards(JwtAuthGuard)
   getPlaces() {
     return this.placeService.getPlaces();
+  }
+
+  @Get('/dashboard')
+  @UseGuards(JwtAuthGuard)
+  async getDashboard(@Req() req: Request) {
+    const googleUid = (req.user as { userId: string }).userId;
+    return this.placeService.getDashboard(googleUid);
   }
 
   @Get(':id')
