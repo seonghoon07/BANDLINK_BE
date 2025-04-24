@@ -2,7 +2,8 @@ import {
   Controller,
   Get,
   NotFoundException,
-  Param, Req,
+  Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { PlaceService } from './place.service';

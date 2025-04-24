@@ -38,38 +38,61 @@ export class PlaceService {
       .getOne();
   }
 
-  async getDashboard(
-    googleUid: string,
-  ): Promise<{ todayReservationCount: number }> {
+  async getDashboard(googleUid: string): Promise<{
+    todayReservationCount: number;
+    firstEnterTime: string | null;
+    lastLeaveTime: string | null;
+  }> {
     const user = await this.userRepository.findOne({ where: { googleUid } });
     if (!user) throw new UnauthorizedException();
 
     const now = new Date();
+    const offset = 9 * 60 * 60 * 1000;
+    const nowKST = new Date(now.getTime() + offset);
+
     const start = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+      nowKST.getFullYear(),
+      nowKST.getMonth(),
+      nowKST.getDate(),
       0,
       0,
       0,
     );
     const end = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+      nowKST.getFullYear(),
+      nowKST.getMonth(),
+      nowKST.getDate(),
       23,
       59,
       59,
     );
 
-    const count = await this.roomReservationRepository
+    const reservations = await this.roomReservationRepository
       .createQueryBuilder('reservation')
       .innerJoin('reservation.room', 'room')
       .innerJoin('room.place', 'place')
       .where('place.userId = :userId', { userId: user.id })
       .andWhere('reservation.startDate BETWEEN :start AND :end', { start, end })
-      .getCount();
+      .orderBy('reservation.startDate', 'ASC')
+      .addOrderBy('reservation.endDate', 'DESC')
+      .getMany();
 
-    return { todayReservationCount: count };
+    const firstEnterTime =
+      reservations.length > 0 ? reservations[0].startDate : null;
+    const lastLeaveTime =
+      reservations.length > 0
+        ? reservations.reduce((latest, r) =>
+            new Date(r.endDate) > new Date(latest.endDate) ? r : latest,
+          ).endDate
+        : null;
+
+    const toKSTISOString = (date: Date): string =>
+      new Date(date.getTime() + 9 * 60 * 60 * 1000).toISOString();
+
+    return {
+      todayReservationCount: reservations.length,
+      firstEnterTime: firstEnterTime ? toKSTISOString(firstEnterTime) : null,
+      lastLeaveTime: lastLeaveTime ? toKSTISOString(lastLeaveTime) : null,
+    };
   }
 }
