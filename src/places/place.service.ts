@@ -1,13 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Place } from '@/src/places/entities/place.entity';
 import { Repository } from 'typeorm';
+import { User } from '@/src/users/entities/user.entity';
+import { RoomReservation } from '@/src/roomReservation/entities/roomReservation.entity';
 
 @Injectable()
 export class PlaceService {
   constructor(
     @InjectRepository(Place)
     private readonly placesRepository: Repository<Place>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    @InjectRepository(RoomReservation)
+    private readonly roomReservationRepository: Repository<RoomReservation>,
   ) {}
 
   async getRecommendedPlaces(): Promise<Place[]> {
@@ -28,5 +36,63 @@ export class PlaceService {
       .leftJoinAndSelect('place.rooms', 'room')
       .where('place.id = :id', { id })
       .getOne();
+  }
+
+  async getDashboard(googleUid: string): Promise<{
+    todayReservationCount: number;
+    firstEnterTime: string | null;
+    lastLeaveTime: string | null;
+  }> {
+    const user = await this.userRepository.findOne({ where: { googleUid } });
+    if (!user) throw new UnauthorizedException();
+
+    const now = new Date();
+    const offset = 9 * 60 * 60 * 1000;
+    const nowKST = new Date(now.getTime() + offset);
+
+    const start = new Date(
+      nowKST.getFullYear(),
+      nowKST.getMonth(),
+      nowKST.getDate(),
+      0,
+      0,
+      0,
+    );
+    const end = new Date(
+      nowKST.getFullYear(),
+      nowKST.getMonth(),
+      nowKST.getDate(),
+      23,
+      59,
+      59,
+    );
+
+    const reservations = await this.roomReservationRepository
+      .createQueryBuilder('reservation')
+      .innerJoin('reservation.room', 'room')
+      .innerJoin('room.place', 'place')
+      .where('place.userId = :userId', { userId: user.id })
+      .andWhere('reservation.startDate BETWEEN :start AND :end', { start, end })
+      .orderBy('reservation.startDate', 'ASC')
+      .addOrderBy('reservation.endDate', 'DESC')
+      .getMany();
+
+    const firstEnterTime =
+      reservations.length > 0 ? reservations[0].startDate : null;
+    const lastLeaveTime =
+      reservations.length > 0
+        ? reservations.reduce((latest, r) =>
+            new Date(r.endDate) > new Date(latest.endDate) ? r : latest,
+          ).endDate
+        : null;
+
+    const toKSTISOString = (date: Date): string =>
+      new Date(date.getTime() + 9 * 60 * 60 * 1000).toISOString();
+
+    return {
+      todayReservationCount: reservations.length,
+      firstEnterTime: firstEnterTime ? toKSTISOString(firstEnterTime) : null,
+      lastLeaveTime: lastLeaveTime ? toKSTISOString(lastLeaveTime) : null,
+    };
   }
 }

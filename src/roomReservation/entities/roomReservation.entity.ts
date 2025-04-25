@@ -19,6 +19,6 @@ export class RoomReservation {
   @Column({ type: 'timestamp' })
   endDate: Date;
 
-  @Column({ default: false })
-  isConfirmed: boolean;
+  @Column({ nullable: false })
+  price: number;
 }

@@ -9,6 +9,7 @@ import { Room } from '@/src/rooms/entities/room.entity';
 import { RoomReservation } from '@/src/roomReservation/entities/roomReservation.entity';
 import { Place } from '@/src/places/entities/place.entity';
 import { User } from '@/src/users/entities/user.entity';
+import { ReserveRoomRequestDto } from '@/src/rooms/dto/reserveRoomRequest.dto';
 
 @Injectable()
 export class RoomService {
@@ -67,7 +68,6 @@ export class RoomService {
         where: {
           room: { id: roomId },
           startDate: Between(dayStart, dayEnd),
-          isConfirmed: true,
         },
       });
 
@@ -90,31 +90,26 @@ export class RoomService {
     return unavailableDates;
   }
 
-  async reserveRoom(
-    roomId: number,
-    userId: number,
-    startDate: Date,
-    endDate: Date,
-  ): Promise<void> {
-    const room = await this.roomRepository.findOne({ where: { id: roomId } });
+  async reserveRoom(dto: ReserveRoomRequestDto): Promise<void> {
+    const room = await this.roomRepository.findOne({
+      where: { id: dto.roomId },
+    });
     if (!room) throw new NotFoundException('Room not found');
 
     const user = await this.placeRepository.manager
       .getRepository(User)
-      .findOne({ where: { id: userId } });
+      .findOne({ where: { id: dto.userId } });
     if (!user) throw new NotFoundException('User not found');
 
     const overlapping = await this.roomReservationRepository.findOne({
       where: [
         {
-          room: { id: roomId },
-          isConfirmed: true,
-          startDate: Between(startDate, endDate),
+          room: { id: dto.roomId },
+          startDate: Between(dto.startDate, dto.endDate),
         },
         {
-          room: { id: roomId },
-          isConfirmed: true,
-          endDate: Between(startDate, endDate),
+          room: { id: dto.roomId },
+          endDate: Between(dto.startDate, dto.endDate),
         },
       ],
     });
@@ -126,9 +121,9 @@ export class RoomService {
     const reservation = this.roomReservationRepository.create({
       room,
       reservedBy: user,
-      startDate,
-      endDate,
-      isConfirmed: true,
+      startDate: dto.startDate,
+      endDate: dto.endDate,
+      price: dto.price,
     });
 
     await this.roomReservationRepository.save(reservation);
@@ -148,7 +143,6 @@ export class RoomService {
       where: {
         room: { id: roomId },
         startDate: Between(startOfDay, endOfDay),
-        isConfirmed: true,
       },
     });
 

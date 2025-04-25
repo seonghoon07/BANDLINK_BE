@@ -11,6 +11,7 @@ import {
 import { RoomService } from './room.service';
 import { JwtAuthGuard } from '@/src/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { ReserveRoomRequestDto } from '@/src/rooms/dto/reserveRoomRequest.dto';
 
 @Controller('rooms')
 export class RoomController {
@@ -40,17 +41,18 @@ export class RoomController {
   @UseGuards(JwtAuthGuard)
   async reserveRoom(
     @Param('id') roomId: number,
-    @Body() body: { startDate: string; endDate: string },
+    @Body() body: ReserveRoomRequestDto,
     @Req() req: Request,
   ): Promise<void> {
     const userId = (req.user as { id: number }).id;
 
-    await this.roomService.reserveRoom(
+    await this.roomService.reserveRoom({
       roomId,
       userId,
-      new Date(body.startDate),
-      new Date(body.endDate),
-    );
+      startDate: new Date(body.startDate),
+      endDate: new Date(body.endDate),
+      price: body.price,
+    });
   }
 
   @Get(':id/unavailableHours')
