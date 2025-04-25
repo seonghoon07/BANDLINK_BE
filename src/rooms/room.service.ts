@@ -68,7 +68,6 @@ export class RoomService {
         where: {
           room: { id: roomId },
           startDate: Between(dayStart, dayEnd),
-          isConfirmed: true,
         },
       });
 
@@ -106,12 +105,10 @@ export class RoomService {
       where: [
         {
           room: { id: dto.roomId },
-          isConfirmed: true,
           startDate: Between(dto.startDate, dto.endDate),
         },
         {
           room: { id: dto.roomId },
-          isConfirmed: true,
           endDate: Between(dto.startDate, dto.endDate),
         },
       ],
@@ -127,7 +124,6 @@ export class RoomService {
       startDate: dto.startDate,
       endDate: dto.endDate,
       price: dto.price,
-      isConfirmed: true,
     });
 
     await this.roomReservationRepository.save(reservation);
@@ -147,7 +143,6 @@ export class RoomService {
       where: {
         room: { id: roomId },
         startDate: Between(startOfDay, endOfDay),
-        isConfirmed: true,
       },
     });
 

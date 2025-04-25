@@ -21,7 +21,4 @@ export class RoomReservation {
 
   @Column({ nullable: false })
   price: number;
-
-  @Column({ default: false })
-  isConfirmed: boolean;
 }
