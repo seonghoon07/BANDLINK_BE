@@ -9,6 +9,13 @@ export class RoomReservationController {
     private readonly roomReservationService: RoomReservationService,
   ) {}
 
+  @Get('')
+  @UseGuards(JwtAuthGuard)
+  async getRoomReservations(@Req() req: Request) {
+    const googleUid = (req.user as { userId: string }).userId;
+    return this.roomReservationService.getRoomReservations(googleUid);
+  }
+
   @Get('/revenue')
   @UseGuards(JwtAuthGuard)
   async getRevenue(@Req() req: Request) {

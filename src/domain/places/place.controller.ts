@@ -33,6 +33,13 @@ export class PlaceController {
     return this.placeService.getDashboard(googleUid);
   }
 
+  @Get('/my')
+  @UseGuards(JwtAuthGuard)
+  async getMyPlace(@Req() req: Request) {
+    const googleUid = (req.user as { userId: string }).userId;
+    return this.placeService.getMyPlace(googleUid);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async getPlaceDetails(@Param('id') id: string) {

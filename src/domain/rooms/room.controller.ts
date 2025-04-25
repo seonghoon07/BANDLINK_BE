@@ -37,6 +37,15 @@ export class RoomController {
     );
   }
 
+  @Get(':id/unavailableHours')
+  @UseGuards(JwtAuthGuard)
+  async getUnavailableHours(
+    @Param('id') roomId: number,
+    @Query('date') date: string,
+  ): Promise<{ am: number[]; pm: number[] }> {
+    return this.roomService.getUnavailableHours(roomId, date);
+  }
+
   @Post(':id/reserve')
   @UseGuards(JwtAuthGuard)
   async reserveRoom(
@@ -53,14 +62,5 @@ export class RoomController {
       endDate: new Date(body.endDate),
       price: body.price,
     });
-  }
-
-  @Get(':id/unavailableHours')
-  @UseGuards(JwtAuthGuard)
-  async getUnavailableHours(
-    @Param('id') roomId: number,
-    @Query('date') date: string,
-  ): Promise<{ am: number[]; pm: number[] }> {
-    return this.roomService.getUnavailableHours(roomId, date);
   }
 }
