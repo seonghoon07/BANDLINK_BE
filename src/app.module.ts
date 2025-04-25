@@ -2,15 +2,15 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { typeOrmModuleOptions } from './configs/typeorm.config';
-import { UsersModule } from './users/users.module';
-import { PlaceModule } from './places/place.module';
-import { PerformanceModule } from '@/src/performances/performance.module';
-import { RoomModule } from '@/src/rooms/room.module';
-import { PerformanceReservationModule } from '@/src/performanceReservation/performanceReservation.module';
-import { RoomReservationModule } from '@/src/roomReservation/roomReservation.module';
+import { typeOrmModuleOptions } from '@/src/global/configs/typeorm.config';
+import { UsersModule } from '@/src/domain/users/users.module';
+import { PlaceModule } from '@/src/domain/places/place.module';
+import { PerformanceModule } from '@/src/domain/performances/performance.module';
+import { RoomModule } from '@/src/domain/rooms/room.module';
+import { PerformanceReservationModule } from '@/src/domain/performanceReservation/performanceReservation.module';
+import { RoomReservationModule } from '@/src/domain/roomReservation/roomReservation.module';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from '@/src/auth/auth.module';
+import { AuthModule } from '@/src/domain/auth/auth.module';
 
 @Module({
   imports: [
