@@ -31,6 +31,12 @@ export class Place {
   @Column('simple-json', { nullable: true })
   businessDays: string[];
 
+  @Column({ type: 'time' })
+  openTime: string;
+
+  @Column({ type: 'time' })
+  closeTime: string;
+
   @ManyToOne(() => User, (user) => user.place)
   user: User;
 
