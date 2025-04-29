@@ -95,4 +95,17 @@ export class PlaceService {
       lastLeaveTime: lastLeaveTime ? toKSTISOString(lastLeaveTime) : null,
     };
   }
+
+  async getMyPlace(googleUid: string): Promise<Place | null> {
+    const user = await this.userRepository.findOne({ where: { googleUid } });
+    if (!user) throw new UnauthorizedException();
+
+    const myPlace = await this.placesRepository.findOne({
+      where: {
+        user: { id: user.id },
+      },
+    });
+
+    return myPlace ?? null;
+  }
 }

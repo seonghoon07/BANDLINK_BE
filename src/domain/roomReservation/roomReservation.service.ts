@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '@/src/domain/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
+import { RoomReservationResponseDto } from '@/src/domain/roomReservation/dto/roomReservationResponse.dto';
 
 @Injectable()
 export class RoomReservationService {
@@ -68,5 +69,26 @@ export class RoomReservationService {
     );
 
     return { currentRevenue, lastMonthRevenue };
+  }
+
+  async getRoomReservations(
+    googleUid: string,
+  ): Promise<RoomReservationResponseDto[]> {
+    const user = await this.userRepository.findOne({ where: { googleUid } });
+    if (!user) throw new UnauthorizedException();
+
+    const reservations = await this.roomReservationRepository.find({
+      where: { reservedBy: { id: user.id } },
+      relations: ['room', 'reservedBy'],
+    });
+
+    return reservations.map((r) => ({
+      reservationId: r.id,
+      roomName: r.room.name,
+      userNickname: r.reservedBy.nickname,
+      startDate: r.startDate,
+      endDate: r.endDate,
+      price: r.price,
+    }));
   }
 }
