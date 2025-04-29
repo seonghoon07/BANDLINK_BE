@@ -104,6 +104,7 @@ export class PlaceService {
       where: {
         user: { id: user.id },
       },
+      relations: ['rooms'],
     });
 
     return myPlace ?? null;
