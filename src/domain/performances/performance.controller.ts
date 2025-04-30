@@ -57,26 +57,8 @@ export class PerformanceController {
 
   @Get('/reservedRooms')
   @UseGuards(JwtAuthGuard)
-  async getMyReservedRooms(@Req() req: Request): Promise<ReservedRoomDto[]> {
+  async getMyReservedRooms(@Req() req: Request): Promise<any> {
     const googleUid = (req.user as { userId: string }).userId;
-
-    const user = await this.userRepository.findOne({
-      where: { googleUid },
-    });
-
-    if (!user) throw new UnauthorizedException();
-
-    const reservations = await this.roomReservationRepository.find({
-      where: { reservedBy: user },
-      relations: ['room', 'room.place'],
-    });
-
-    return reservations.map((r) => ({
-      reservationId: r.id,
-      roomName: r.room.name,
-      address: r.room.place.address,
-      startTime: new Date(r.startDate),
-      endTime: new Date(r.endDate),
-    }));
+    return this.performanceService.getMyReservedRooms(googleUid);
   }
 }

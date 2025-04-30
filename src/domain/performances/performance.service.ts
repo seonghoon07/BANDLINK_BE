@@ -9,12 +9,16 @@ import { Performance } from '@/src/domain/performances/entities/performance.enti
 import { CreatePerformanceDto } from '@/src/domain/performances/dto/createPerformance.dto';
 import { User } from '@/src/domain/users/entities/user.entity';
 import { Room } from '@/src/domain/rooms/entities/room.entity';
+import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
 
 @Injectable()
 export class PerformanceService {
   constructor(
     @InjectRepository(Performance)
     private readonly performanceRepository: Repository<Performance>,
+
+    @InjectRepository(RoomReservation)
+    private readonly roomReservationRepository: Repository<RoomReservation>,
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -48,5 +52,26 @@ export class PerformanceService {
     });
 
     return this.performanceRepository.save(performance);
+  }
+
+  async getMyReservedRooms(googleUid: string) {
+    const user = await this.userRepository.findOne({
+      where: { googleUid },
+    });
+
+    if (!user) throw new UnauthorizedException();
+
+    const reservations = await this.roomReservationRepository.find({
+      where: { reservedBy: user },
+      relations: ['room', 'room.place'],
+    });
+
+    return reservations.map((r) => ({
+      reservationId: r.id,
+      roomName: r.room.name,
+      address: r.room.place.address,
+      startTime: new Date(r.startDate),
+      endTime: new Date(r.endDate),
+    }));
   }
 }
