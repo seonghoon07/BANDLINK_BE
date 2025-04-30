@@ -27,9 +27,11 @@ export class PerformanceService {
     private readonly roomRepository: Repository<Room>,
   ) {}
 
-  async getMyPerformances(userId: number): Promise<Performance[]> {
+  async getMyPerformances(googleUid: string): Promise<Performance[]> {
+    const user = await this.userRepository.findOne({ where: { googleUid } });
+    if (!user) throw new UnauthorizedException('등록되지 않은 사용자입니다.');
     return this.performanceRepository.find({
-      where: { user: { id: userId } },
+      where: { user: { googleUid: googleUid } },
     });
   }
 
