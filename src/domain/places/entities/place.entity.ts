@@ -13,6 +13,9 @@ export class Place {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  imageUrl: string;
+
   @Column({ length: 20 })
   name: string;
 
