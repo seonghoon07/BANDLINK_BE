@@ -39,6 +39,8 @@ export class RoomService {
       price: room.price,
       additionDescription: room.additionalDescription,
       businessDays: room.place.businessDays,
+      openTime: room.place.openTime,
+      closeTime: room.place.closeTime,
     };
   }
 

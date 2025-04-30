@@ -1,14 +1,17 @@
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
   Param,
+  Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { PlaceService } from './place.service';
 import { JwtAuthGuard } from '@/src/domain/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { CreatePlaceDto } from '@/src/domain/places/dto/createPlaceRequest.dto';
 
 @Controller('places')
 export class PlaceController {
@@ -38,6 +41,13 @@ export class PlaceController {
   async getMyPlace(@Req() req: Request) {
     const googleUid = (req.user as { userId: string }).userId;
     return this.placeService.getMyPlace(googleUid);
+  }
+
+  @Post('')
+  @UseGuards(JwtAuthGuard)
+  async createPlaceWithRooms(@Body() dto: CreatePlaceDto, @Req() req: Request) {
+    const googleUid = (req.user as { userId: string }).userId;
+    return this.placeService.createPlace(dto, googleUid);
   }
 
   @Get(':id')

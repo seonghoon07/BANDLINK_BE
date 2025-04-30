@@ -13,6 +13,9 @@ export class Place {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  imageUrl: string;
+
   @Column({ length: 20 })
   name: string;
 
@@ -30,6 +33,12 @@ export class Place {
 
   @Column('simple-json', { nullable: true })
   businessDays: string[];
+
+  @Column({ type: 'time' })
+  openTime: string;
+
+  @Column({ type: 'time' })
+  closeTime: string;
 
   @ManyToOne(() => User, (user) => user.place)
   user: User;

@@ -4,12 +4,17 @@ import { Place } from '@/src/domain/places/entities/place.entity';
 import { Repository } from 'typeorm';
 import { User } from '@/src/domain/users/entities/user.entity';
 import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
+import { CreatePlaceDto } from '@/src/domain/places/dto/createPlaceRequest.dto';
+import { Room } from '@/src/domain/rooms/entities/room.entity';
 
 @Injectable()
 export class PlaceService {
   constructor(
     @InjectRepository(Place)
     private readonly placesRepository: Repository<Place>,
+
+    @InjectRepository(Room)
+    private readonly roomRepository: Repository<Room>,
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -104,8 +109,30 @@ export class PlaceService {
       where: {
         user: { id: user.id },
       },
+      relations: ['rooms'],
     });
 
     return myPlace ?? null;
+  }
+
+  async createPlace(dto: CreatePlaceDto, googleUid: string) {
+    const user = await this.userRepository.findOne({ where: { googleUid } });
+    if (!user) throw new UnauthorizedException();
+
+    const place = this.placesRepository.create({
+      ...dto.place,
+      user,
+    });
+    await this.placesRepository.save(place);
+
+    const rooms = dto.rooms.map((room) =>
+      this.roomRepository.create({
+        ...room,
+        place,
+      }),
+    );
+    await this.roomRepository.save(rooms);
+
+    return { message: '장소 및 방 등록 완료', placeId: place.id };
   }
 }
