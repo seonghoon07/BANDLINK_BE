@@ -19,6 +19,12 @@ export class PerformanceController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
+  async getPerformances() {
+    return this.performanceService.getPerformances();
+  }
+
+  @Get('/my')
+  @UseGuards(JwtAuthGuard)
   async getMyPerformances(@Req() req: Request) {
     const googleUid = (req.user as { userId: string }).userId;
     return this.performanceService.getMyPerformances(googleUid);

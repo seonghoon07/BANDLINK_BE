@@ -10,6 +10,7 @@ import { CreatePerformanceDto } from '@/src/domain/performances/dto/createPerfor
 import { User } from '@/src/domain/users/entities/user.entity';
 import { Room } from '@/src/domain/rooms/entities/room.entity';
 import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
+import { PerformancesResponse } from '@/src/domain/performances/dto/performancesResponse.dto';
 
 @Injectable()
 export class PerformanceService {
@@ -26,6 +27,19 @@ export class PerformanceService {
     @InjectRepository(Room)
     private readonly roomRepository: Repository<Room>,
   ) {}
+
+  async getPerformances(): Promise<PerformancesResponse[]> {
+    const performances = await this.performanceRepository.find({
+      relations: ['user'],
+    });
+
+    return performances.map((p) => ({
+      posterUrl: p.posterUrl,
+      title: p.title,
+      bandname: p.user.bandname,
+      price: p.price,
+    }));
+  }
 
   async getMyPerformances(googleUid: string): Promise<Performance[]> {
     const user = await this.userRepository.findOne({ where: { googleUid } });
