@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +12,7 @@ import { User } from '@/src/domain/users/entities/user.entity';
 import { Room } from '@/src/domain/rooms/entities/room.entity';
 import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
 import { PerformancesResponse } from '@/src/domain/performances/dto/performancesResponse.dto';
+import { PerformanceReservation } from '@/src/domain/performanceReservation/entities/performanceReservation.entity';
 
 @Injectable()
 export class PerformanceService {
@@ -26,6 +28,9 @@ export class PerformanceService {
 
     @InjectRepository(Room)
     private readonly roomRepository: Repository<Room>,
+
+    @InjectRepository(PerformanceReservation)
+    private readonly performanceReservationRepository: Repository<PerformanceReservation>,
   ) {}
 
   async getPerformances(): Promise<PerformancesResponse[]> {
@@ -98,5 +103,23 @@ export class PerformanceService {
     if (!performance) throw new BadRequestException('공연을 찾을 수 없습니다.');
 
     return performance;
+  }
+
+  async reservePerformance(
+    performanceId: number,
+    googleUid: string,
+  ): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { googleUid } });
+    if (!user) throw new UnauthorizedException();
+
+    const performance = await this.performanceRepository.findOne({ where: { id: performanceId } });
+    if (!performance) throw new NotFoundException('Performance not found');
+
+    const reservation = this.performanceReservationRepository.create({
+      user,
+      performance,
+    });
+
+    await this.performanceReservationRepository.save(reservation);
   }
 }
