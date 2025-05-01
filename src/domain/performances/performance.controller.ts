@@ -1,16 +1,19 @@
 import {
   Body,
   Controller,
-  Get, Param,
+  Get,
+  Param,
   Post,
   Req,
-  UseGuards
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PerformanceService } from './performance.service';
 import { JwtAuthGuard } from '@/src/domain/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { CreatePerformanceDto } from '@/src/domain/performances/dto/createPerformance.dto';
 import { ReserveRequestDto } from '@/src/domain/performances/dto/reserveRequest.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('performances')
 export class PerformanceController {
@@ -44,6 +47,7 @@ export class PerformanceController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('poster'))
   async createPerformance(
     @Body() dto: CreatePerformanceDto,
     @Req() req: Request,

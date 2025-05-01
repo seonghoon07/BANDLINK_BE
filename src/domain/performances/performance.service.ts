@@ -112,7 +112,9 @@ export class PerformanceService {
     const user = await this.userRepository.findOne({ where: { googleUid } });
     if (!user) throw new UnauthorizedException();
 
-    const performance = await this.performanceRepository.findOne({ where: { id: performanceId } });
+    const performance = await this.performanceRepository.findOne({
+      where: { id: performanceId },
+    });
     if (!performance) throw new NotFoundException('Performance not found');
 
     const reservation = this.performanceReservationRepository.create({
