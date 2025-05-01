@@ -90,4 +90,13 @@ export class PerformanceService {
       endTime: new Date(r.endDate),
     }));
   }
+
+  async getPerformanceDetail(performanceId: number): Promise<Performance> {
+    const performance = await this.performanceRepository.findOne({
+      where: { id: performanceId },
+    });
+    if (!performance) throw new BadRequestException('공연을 찾을 수 없습니다.');
+
+    return performance;
+  }
 }

@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, Param,
   Post,
   Req,
   UseGuards,
@@ -46,5 +46,11 @@ export class PerformanceController {
   async getMyReservedRooms(@Req() req: Request): Promise<any> {
     const googleUid = (req.user as { userId: string }).userId;
     return this.performanceService.getMyReservedRooms(googleUid);
+  }
+
+  @Get('/:id')
+  @UseGuards(JwtAuthGuard)
+  async getPerformanceDetail(@Param('id') performanceId: number) {
+    return this.performanceService.getPerformanceDetail(performanceId);
   }
 }
