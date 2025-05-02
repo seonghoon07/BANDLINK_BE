@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,6 +10,9 @@ import { Performance } from '@/src/domain/performances/entities/performance.enti
 import { CreatePerformanceDto } from '@/src/domain/performances/dto/createPerformance.dto';
 import { User } from '@/src/domain/users/entities/user.entity';
 import { Room } from '@/src/domain/rooms/entities/room.entity';
+import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
+import { PerformancesResponse } from '@/src/domain/performances/dto/performancesResponse.dto';
+import { PerformanceReservation } from '@/src/domain/performanceReservation/entities/performanceReservation.entity';
 
 @Injectable()
 export class PerformanceService {
@@ -16,16 +20,37 @@ export class PerformanceService {
     @InjectRepository(Performance)
     private readonly performanceRepository: Repository<Performance>,
 
+    @InjectRepository(RoomReservation)
+    private readonly roomReservationRepository: Repository<RoomReservation>,
+
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
     @InjectRepository(Room)
     private readonly roomRepository: Repository<Room>,
+
+    @InjectRepository(PerformanceReservation)
+    private readonly performanceReservationRepository: Repository<PerformanceReservation>,
   ) {}
 
-  async getMyPerformances(userId: number): Promise<Performance[]> {
+  async getPerformances(): Promise<PerformancesResponse[]> {
+    const performances = await this.performanceRepository.find({
+      relations: ['user'],
+    });
+
+    return performances.map((p) => ({
+      posterUrl: p.posterUrl,
+      title: p.title,
+      bandname: p.user.bandname,
+      price: p.price,
+    }));
+  }
+
+  async getMyPerformances(googleUid: string): Promise<Performance[]> {
+    const user = await this.userRepository.findOne({ where: { googleUid } });
+    if (!user) throw new UnauthorizedException('등록되지 않은 사용자입니다.');
     return this.performanceRepository.find({
-      where: { user: { id: userId } },
+      where: { user: { googleUid: googleUid } },
     });
   }
 
@@ -48,5 +73,55 @@ export class PerformanceService {
     });
 
     return this.performanceRepository.save(performance);
+  }
+
+  async getMyReservedRooms(googleUid: string) {
+    const user = await this.userRepository.findOne({
+      where: { googleUid },
+    });
+
+    if (!user) throw new UnauthorizedException();
+
+    const reservations = await this.roomReservationRepository.find({
+      where: { reservedBy: user },
+      relations: ['room', 'room.place'],
+    });
+
+    return reservations.map((r) => ({
+      reservationId: r.id,
+      roomName: r.room.name,
+      address: r.room.place.address,
+      startTime: new Date(r.startDate),
+      endTime: new Date(r.endDate),
+    }));
+  }
+
+  async getPerformanceDetail(performanceId: number): Promise<Performance> {
+    const performance = await this.performanceRepository.findOne({
+      where: { id: performanceId },
+    });
+    if (!performance) throw new BadRequestException('공연을 찾을 수 없습니다.');
+
+    return performance;
+  }
+
+  async reservePerformance(
+    performanceId: number,
+    googleUid: string,
+  ): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { googleUid } });
+    if (!user) throw new UnauthorizedException();
+
+    const performance = await this.performanceRepository.findOne({
+      where: { id: performanceId },
+    });
+    if (!performance) throw new NotFoundException('Performance not found');
+
+    const reservation = this.performanceReservationRepository.create({
+      user,
+      performance,
+    });
+
+    await this.performanceReservationRepository.save(reservation);
   }
 }

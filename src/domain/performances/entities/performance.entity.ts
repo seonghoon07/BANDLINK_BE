@@ -25,6 +25,9 @@ export class Performance {
   @Column({ length: 500 })
   description: string;
 
+  @Column()
+  address: string;
+
   @Column({ type: 'timestamp' })
   start_time: Date;
 
