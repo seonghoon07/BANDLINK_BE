@@ -13,6 +13,8 @@ export class ReservationController {
   @UseGuards(JwtAuthGuard)
   async getMyPerformanceReservation(@Req() req: Request) {
     const googleUid = (req.user as { userId: string }).userId;
-    return this.performanceReservationService.getMyPerformanceReservation(googleUid);
+    return this.performanceReservationService.getMyPerformanceReservation(
+      googleUid,
+    );
   }
 }
