@@ -13,6 +13,7 @@ import { Room } from '@/src/domain/rooms/entities/room.entity';
 import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
 import { PerformancesResponse } from '@/src/domain/performances/dto/performancesResponse.dto';
 import { PerformanceReservation } from '@/src/domain/performanceReservation/entities/performanceReservation.entity';
+import { PerformanceDetailResponseDto } from '@/src/domain/performances/dto/performanceDetail.dto';
 
 @Injectable()
 export class PerformanceService {
@@ -39,10 +40,12 @@ export class PerformanceService {
     });
 
     return performances.map((p) => ({
+      id: p.id,
       posterUrl: p.posterUrl,
       title: p.title,
       bandname: p.user.bandname,
       price: p.price,
+      startTime: p.start_time,
     }));
   }
 
@@ -96,13 +99,27 @@ export class PerformanceService {
     }));
   }
 
-  async getPerformanceDetail(performanceId: number): Promise<Performance> {
+  async getPerformanceDetail(
+    performanceId: number,
+  ): Promise<PerformanceDetailResponseDto> {
     const performance = await this.performanceRepository.findOne({
       where: { id: performanceId },
+      relations: ['user'],
     });
     if (!performance) throw new BadRequestException('공연을 찾을 수 없습니다.');
 
-    return performance;
+    return {
+      id: performance.id,
+      posterUrl: performance.posterUrl,
+      title: performance.title,
+      description: performance.description,
+      address: performance.address,
+      start_time: performance.start_time,
+      end_time: performance.end_time,
+      price: performance.price,
+      createdAt: performance.createdAt,
+      bandname: performance.user?.bandname ?? '',
+    };
   }
 
   async reservePerformance(
