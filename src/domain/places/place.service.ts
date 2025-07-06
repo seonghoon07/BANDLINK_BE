@@ -31,8 +31,10 @@ export class PlaceService {
       .getMany();
   }
 
-  async getPlaces(): Promise<Place[]> {
-    return await this.placesRepository.find();
+  async getPlaces(): Promise<any[]> {
+    return await this.placesRepository.find({
+      relations: ['rooms'],
+    });
   }
 
   async getPlaceById(id: number): Promise<Place | null> {

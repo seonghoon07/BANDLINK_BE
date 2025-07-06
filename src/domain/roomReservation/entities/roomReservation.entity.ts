@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Room } from '@/src/domain/rooms/entities/room.entity';
 import { User } from '@/src/domain/users/entities/user.entity';
+import { Place } from '@/src/domain/places/entities/place.entity';
 
 @Entity('room_reservation')
 export class RoomReservation {
@@ -12,6 +13,9 @@ export class RoomReservation {
 
   @ManyToOne(() => User, (user) => user.reservations)
   reservedBy: User;
+
+  @ManyToOne(() => Place, (place) => place.rooms)
+  place: Place;
 
   @Column({ type: 'timestamp' })
   startDate: Date;

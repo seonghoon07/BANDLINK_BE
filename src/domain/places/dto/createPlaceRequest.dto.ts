@@ -2,7 +2,7 @@ export class CreatePlaceDto {
   place: {
     imageUrl: string;
     name: string;
-    type: string;
+    type: string[];
     address: string;
     businessDays: string[];
     businessRegistrationNumber: string;

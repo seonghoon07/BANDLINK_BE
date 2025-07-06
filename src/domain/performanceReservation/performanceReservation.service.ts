@@ -31,6 +31,7 @@ export class PerformanceReservationService {
       const place = performance.room.place;
 
       return {
+        id: res.id,
         posterUrl: performance.posterUrl,
         title: performance.title,
         reservedAt: res.reservedAt.toISOString().split('T')[0],

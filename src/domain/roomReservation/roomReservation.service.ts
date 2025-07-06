@@ -79,16 +79,19 @@ export class RoomReservationService {
 
     const reservations = await this.roomReservationRepository.find({
       where: { reservedBy: { id: user.id } },
-      relations: ['room', 'reservedBy'],
+      relations: ['room', 'reservedBy', 'room.place'],
     });
 
     return reservations.map((r) => ({
-      reservationId: r.id,
+      id: r.id,
+      roomId: r.room.id,
       roomName: r.room.name,
-      userNickname: r.reservedBy.nickname,
+      userName: r.reservedBy.nickname,
       startDate: r.startDate,
       endDate: r.endDate,
       price: r.price,
+      placeName: r.room.place.name,
+      address: r.room.place.address,
     }));
   }
 }
