@@ -22,8 +22,8 @@ export class Place {
   @Column({ length: 100 })
   address: string;
 
-  @Column({ length: 5 })
-  type: string;
+  @Column('simple-json')
+  type: string[];
 
   @Column({ length: 100, name: 'businessRegistrationNumber' })
   businessRegistrationNumber: string;

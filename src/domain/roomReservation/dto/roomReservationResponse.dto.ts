@@ -1,8 +1,11 @@
 export class RoomReservationResponseDto {
-  reservationId: number;
+  id: number;
+  roomId: number;
   roomName: string;
-  userNickname: string;
+  userName: string;
   startDate: Date;
   endDate: Date;
   price: number;
+  placeName: string;
+  address: string;
 }

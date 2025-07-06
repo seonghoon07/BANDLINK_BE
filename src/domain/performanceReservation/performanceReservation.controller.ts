@@ -1,5 +1,5 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-import { PerformanceReservationService } from './performanceReservation.service'
+import { PerformanceReservationService } from './performanceReservation.service';
 import { JwtAuthGuard } from '@/src/domain/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 
