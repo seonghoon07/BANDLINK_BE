@@ -7,6 +7,7 @@ import { User } from '@/src/domain/users/entities/user.entity';
 import { Room } from '@/src/domain/rooms/entities/room.entity';
 import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
 import { PerformanceReservation } from '@/src/domain/performanceReservation/entities/performanceReservation.entity';
+import { S3Module } from '@/src/global/aws/s3.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PerformanceReservation } from '@/src/domain/performanceReservation/enti
       RoomReservation,
       PerformanceReservation,
     ]),
+    S3Module,
   ],
   controllers: [PerformanceController],
   providers: [PerformanceService],

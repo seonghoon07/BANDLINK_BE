@@ -6,5 +6,4 @@ export class CreatePerformanceDto {
   end_time: string;
   price: number;
   roomId: number;
-  posterUrl: string;
 }
