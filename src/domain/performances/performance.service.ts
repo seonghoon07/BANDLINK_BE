@@ -14,6 +14,7 @@ import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReser
 import { PerformancesResponse } from '@/src/domain/performances/dto/performancesResponse.dto';
 import { PerformanceReservation } from '@/src/domain/performanceReservation/entities/performanceReservation.entity';
 import { PerformanceDetailResponseDto } from '@/src/domain/performances/dto/performanceDetail.dto';
+import { S3Service } from '@/src/global/aws/s3.service';
 
 @Injectable()
 export class PerformanceService {
@@ -32,6 +33,8 @@ export class PerformanceService {
 
     @InjectRepository(PerformanceReservation)
     private readonly performanceReservationRepository: Repository<PerformanceReservation>,
+
+    private readonly s3Service: S3Service,
   ) {}
 
   async getPerformances(): Promise<PerformancesResponse[]> {
@@ -54,10 +57,15 @@ export class PerformanceService {
     if (!user) throw new UnauthorizedException('등록되지 않은 사용자입니다.');
     return this.performanceRepository.find({
       where: { user: { googleUid: googleUid } },
+      order: { id: 'DESC' },
     });
   }
 
-  async createPerformance(dto: CreatePerformanceDto, googleUid: string) {
+  async createPerformance(
+    dto: CreatePerformanceDto,
+    googleUid: string,
+    poster: Express.Multer.File,
+  ) {
     const user = await this.userRepository.findOne({ where: { googleUid } });
     if (!user) throw new UnauthorizedException('유저 정보를 찾을 수 없습니다.');
 
@@ -67,12 +75,18 @@ export class PerformanceService {
     if (!room)
       throw new BadRequestException('해당 roomId의 장소를 찾을 수 없습니다');
 
+    let posterUrl: string | null = null;
+    if (poster) {
+      posterUrl = await this.s3Service.uploadFile(poster, 'performances');
+    }
+
     const performance = this.performanceRepository.create({
       ...dto,
       start_time: new Date(dto.start_time),
       end_time: new Date(dto.end_time),
       user,
       room,
+      posterUrl: posterUrl ?? undefined,
     });
 
     return this.performanceRepository.save(performance);

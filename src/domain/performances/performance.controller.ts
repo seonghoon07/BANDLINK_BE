@@ -4,7 +4,7 @@ import {
   Get,
   Param,
   Post,
-  Req,
+  Req, UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -49,11 +49,12 @@ export class PerformanceController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('poster'))
   async createPerformance(
+    @UploadedFile() poster: Express.Multer.File,
     @Body() dto: CreatePerformanceDto,
     @Req() req: Request,
   ) {
     const googleUid = (req.user as { userId: string }).userId;
-    return this.performanceService.createPerformance(dto, googleUid);
+    return this.performanceService.createPerformance(dto, googleUid, poster);
   }
 
   @Post('reserve')
