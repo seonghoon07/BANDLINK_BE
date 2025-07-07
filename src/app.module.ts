@@ -17,7 +17,7 @@ import { AuthModule } from '@/src/domain/auth/auth.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot(typeOrmModuleOptions),
+    TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     UsersModule,
     PlaceModule,
     PerformanceModule,
