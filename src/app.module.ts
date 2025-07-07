@@ -11,6 +11,7 @@ import { PerformanceReservationModule } from '@/src/domain/performanceReservatio
 import { RoomReservationModule } from '@/src/domain/roomReservation/roomReservation.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from '@/src/domain/auth/auth.module';
+import { AwsModule } from '@/src/global/aws/aws.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AuthModule } from '@/src/domain/auth/auth.module';
     PerformanceReservationModule,
     RoomReservationModule,
     AuthModule,
+    AwsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
