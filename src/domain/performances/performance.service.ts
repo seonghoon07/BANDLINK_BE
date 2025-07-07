@@ -57,6 +57,7 @@ export class PerformanceService {
     if (!user) throw new UnauthorizedException('등록되지 않은 사용자입니다.');
     return this.performanceRepository.find({
       where: { user: { googleUid: googleUid } },
+      order: { id: 'DESC' },
     });
   }
 
