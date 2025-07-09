@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository, Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { Room } from '@/src/domain/rooms/entities/room.entity';
 import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
 import { Place } from '@/src/domain/places/entities/place.entity';
@@ -52,8 +52,8 @@ export class RoomService {
     const room = await this.roomRepository.findOne({ where: { id: roomId } });
     if (!room) throw new NotFoundException('Room not found');
 
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 0);
+    const start = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
+    const end = new Date(Date.UTC(year, month, 0, 23, 59, 59));
 
     const unavailableDates: string[] = [];
 
@@ -63,29 +63,56 @@ export class RoomService {
       time.setDate(time.getDate() + 1)
     ) {
       const d = new Date(time);
-      const dayStart = new Date(d.setHours(0, 0, 0, 0));
-      const dayEnd = new Date(d.setHours(23, 59, 59, 999));
+      const dayStart = new Date(
+        d.getFullYear(),
+        d.getMonth(),
+        d.getDate(),
+        0,
+        0,
+        0,
+        0,
+      );
+      const dayEnd = new Date(
+        d.getFullYear(),
+        d.getMonth(),
+        d.getDate(),
+        23,
+        59,
+        59,
+        999,
+      );
 
       const reservations = await this.roomReservationRepository.find({
         where: {
           room: { id: roomId },
-          startDate: Between(dayStart, dayEnd),
+          startDate: LessThanOrEqual(dayEnd),
+          endDate: MoreThanOrEqual(dayStart),
         },
       });
 
       const reservedHours = new Set<number>();
+
       for (const res of reservations) {
         const startHour = res.startDate.getHours();
-        const endHour = res.endDate.getHours();
-        const actualEnd = endHour === 0 ? 24 : endHour;
+        const endHour =
+          res.endDate.getMinutes() === 59
+            ? res.endDate.getHours()
+            : res.endDate.getHours() - 1;
+        const actualEnd = endHour < startHour ? 24 : endHour;
 
-        for (let i = startHour; i < actualEnd; i++) {
+        for (let i = startHour; i <= actualEnd; i++) {
           reservedHours.add(i);
         }
       }
 
+      function formatDate(d: Date) {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+          d.getDate(),
+        ).padStart(2, '0')}`;
+      }
+
       if (reservedHours.size >= 24) {
-        unavailableDates.push(d.toISOString().split('T')[0]);
+        unavailableDates.push(formatDate(d));
       }
     }
 
@@ -131,44 +158,61 @@ export class RoomService {
     await this.roomReservationRepository.save(reservation);
   }
 
-  async getUnavailableHours(
-    roomId: number,
-    date: string,
-  ): Promise<{ am: number[]; pm: number[] }> {
+  async getUnavailableHours(roomId: number, date: string): Promise<number[]> {
     const day = new Date(date);
     if (isNaN(day.getTime())) throw new BadRequestException('Invalid date');
 
-    const startOfDay = new Date(day.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(day.setHours(23, 59, 59, 999));
+    const startOfDay = new Date(
+      day.getFullYear(),
+      day.getMonth(),
+      day.getDate(),
+      0,
+      0,
+      0,
+      0,
+    );
+    const endOfDay = new Date(
+      day.getFullYear(),
+      day.getMonth(),
+      day.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
 
+    // 예약이 오늘 날짜와 겹치는 것 전부 조회
     const reservations = await this.roomReservationRepository.find({
-      where: {
-        room: { id: roomId },
-        startDate: Between(startOfDay, endOfDay),
-      },
+      where: [
+        { room: { id: roomId }, startDate: Between(startOfDay, endOfDay) },
+        { room: { id: roomId }, endDate: Between(startOfDay, endOfDay) },
+        {
+          room: { id: roomId },
+          startDate: LessThanOrEqual(startOfDay),
+          endDate: MoreThanOrEqual(endOfDay),
+        },
+      ],
     });
 
     const hours = new Set<number>();
-    for (const res of reservations) {
-      const startHour = res.startDate.getHours();
-      const endHour = res.endDate.getHours();
-      const actualEnd = endHour === 0 ? 24 : endHour;
 
-      for (let i = startHour; i < actualEnd; i++) {
-        hours.add(i);
+    for (const res of reservations) {
+      const start = new Date(
+        Math.max(res.startDate.getTime(), startOfDay.getTime()),
+      );
+      const end = new Date(Math.min(res.endDate.getTime(), endOfDay.getTime()));
+
+      const startHour = start.getHours();
+      const endHour =
+        end.getMinutes() === 0 && end.getSeconds() === 0
+          ? end.getHours()
+          : end.getHours() + 1;
+
+      for (let hour = startHour; hour < endHour; hour++) {
+        hours.add(hour);
       }
     }
 
-    const am: number[] = [];
-    const pm: number[] = [];
-
-    Array.from(hours)
-      .sort((a, b) => a - b)
-      .forEach((hour) => {
-        if (hour < 12) am.push(hour);
-        else pm.push(hour);
-      });
-
-    return { am, pm };
+    return Array.from(hours).sort((a, b) => a - b);
   }
 }

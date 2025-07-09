@@ -29,7 +29,7 @@ export class PlaceController {
     return this.placeService.getPlaces();
   }
 
-  @Get('/dashboard')
+  @Get('/reserveInfo')
   @UseGuards(JwtAuthGuard)
   async getDashboard(@Req() req: Request) {
     const googleUid = (req.user as { userId: string }).userId;

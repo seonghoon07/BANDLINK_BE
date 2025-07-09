@@ -46,33 +46,23 @@ export class PlaceService {
   }
 
   async getDashboard(googleUid: string): Promise<{
-    todayReservationCount: number;
+    count: number;
     firstEnterTime: string | null;
     lastLeaveTime: string | null;
   }> {
     const user = await this.userRepository.findOne({ where: { googleUid } });
     if (!user) throw new UnauthorizedException();
 
-    const now = new Date();
-    const offset = 9 * 60 * 60 * 1000;
-    const nowKST = new Date(now.getTime() + offset);
+    const nowKST = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const year = nowKST.getUTCFullYear();
+    const month = nowKST.getUTCMonth();
+    const date = nowKST.getUTCDate();
 
-    const start = new Date(
-      nowKST.getFullYear(),
-      nowKST.getMonth(),
-      nowKST.getDate(),
-      0,
-      0,
-      0,
-    );
-    const end = new Date(
-      nowKST.getFullYear(),
-      nowKST.getMonth(),
-      nowKST.getDate(),
-      23,
-      59,
-      59,
-    );
+    const kstMidnight = new Date(Date.UTC(year, month, date, 0, 0, 0));
+    const start = new Date(kstMidnight.getTime() - 9 * 60 * 60 * 1000);
+
+    const kstEnd = new Date(Date.UTC(year, month, date, 23, 59, 59));
+    const end = new Date(kstEnd.getTime() - 9 * 60 * 60 * 1000);
 
     const reservations = await this.roomReservationRepository
       .createQueryBuilder('reservation')
@@ -85,21 +75,25 @@ export class PlaceService {
       .getMany();
 
     const firstEnterTime =
-      reservations.length > 0 ? reservations[0].startDate : null;
-    const lastLeaveTime =
-      reservations.length > 0
-        ? reservations.reduce((latest, r) =>
-            new Date(r.endDate) > new Date(latest.endDate) ? r : latest,
-          ).endDate
-        : null;
+      reservations.reduce(
+        (earliest, r) =>
+          !earliest || r.startDate < earliest.startDate ? r : earliest,
+        null as (typeof reservations)[number] | null,
+      )?.startDate || null;
 
-    const toKSTISOString = (date: Date): string =>
+    const lastLeaveTime =
+      reservations.reduce(
+        (latest, r) => (!latest || r.endDate > latest.endDate ? r : latest),
+        null as (typeof reservations)[number] | null,
+      )?.endDate || null;
+
+    const toISOStringKST = (date: Date): string =>
       new Date(date.getTime() + 9 * 60 * 60 * 1000).toISOString();
 
     return {
-      todayReservationCount: reservations.length,
-      firstEnterTime: firstEnterTime ? toKSTISOString(firstEnterTime) : null,
-      lastLeaveTime: lastLeaveTime ? toKSTISOString(lastLeaveTime) : null,
+      count: reservations.length,
+      firstEnterTime: firstEnterTime ? toISOStringKST(firstEnterTime) : null,
+      lastLeaveTime: lastLeaveTime ? toISOStringKST(lastLeaveTime) : null,
     };
   }
 
