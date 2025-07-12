@@ -26,12 +26,12 @@ export class RoomController {
   @Get(':id/unavailableDates')
   @UseGuards(JwtAuthGuard)
   async getUnavailableDates(
-    @Param('id') roomId: number,
+    @Param('id') roomId: string,
     @Query('year') year: string,
     @Query('month') month: string,
   ) {
     return this.roomService.getUnavailableDates(
-      roomId,
+      Number(roomId),
       Number(year),
       Number(month),
     );
@@ -42,7 +42,7 @@ export class RoomController {
   async getUnavailableHours(
     @Param('id') roomId: number,
     @Query('date') date: string,
-  ): Promise<{ am: number[]; pm: number[] }> {
+  ): Promise<number[]> {
     return this.roomService.getUnavailableHours(roomId, date);
   }
 
