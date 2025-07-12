@@ -6,6 +6,7 @@ import { User } from '@/src/domain/users/entities/user.entity';
 import { RoomReservation } from '@/src/domain/roomReservation/entities/roomReservation.entity';
 import { CreatePlaceDto } from '@/src/domain/places/dto/createPlaceRequest.dto';
 import { Room } from '@/src/domain/rooms/entities/room.entity';
+import { S3Service } from '@/src/global/aws/s3.service';
 
 @Injectable()
 export class PlaceService {
@@ -21,6 +22,8 @@ export class PlaceService {
 
     @InjectRepository(RoomReservation)
     private readonly roomReservationRepository: Repository<RoomReservation>,
+
+    private readonly s3Service: S3Service,
   ) {}
 
   async getRecommendedPlaces(): Promise<Place[]> {
@@ -111,9 +114,33 @@ export class PlaceService {
     return myPlace ?? null;
   }
 
-  async createPlace(dto: CreatePlaceDto, googleUid: string) {
+  async createPlace(
+    dto: CreatePlaceDto,
+    googleUid: string,
+    placeImage?: Express.Multer.File,
+    roomImages: Express.Multer.File[] = [],
+  ) {
     const user = await this.userRepository.findOne({ where: { googleUid } });
     if (!user) throw new UnauthorizedException();
+
+    if (placeImage) {
+      const imageUrl = await this.s3Service.uploadFile(placeImage, 'places');
+      dto.place.imageUrl = imageUrl;
+    }
+
+    dto.rooms = await Promise.all(
+      dto.rooms.map(async (room, index) => {
+        const imageFile = roomImages[index];
+        const imageUrl = imageFile
+          ? await this.s3Service.uploadFile(imageFile, 'rooms')
+          : null;
+
+        return {
+          ...room,
+          imageUrl: imageUrl ?? '',
+        };
+      }),
+    );
 
     const place = this.placesRepository.create({
       ...dto.place,
