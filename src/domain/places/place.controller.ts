@@ -6,12 +6,15 @@ import {
   Param,
   Post,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PlaceService } from './place.service';
 import { JwtAuthGuard } from '@/src/domain/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { CreatePlaceDto } from '@/src/domain/places/dto/createPlaceRequest.dto';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @Controller('places')
 export class PlaceController {
@@ -43,11 +46,32 @@ export class PlaceController {
     return this.placeService.getMyPlace(googleUid);
   }
 
-  @Post('')
+  @Post()
   @UseGuards(JwtAuthGuard)
-  async createPlaceWithRooms(@Body() dto: CreatePlaceDto, @Req() req: Request) {
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'placeImage', maxCount: 1 },
+      { name: 'roomImages' },
+    ]),
+  )
+  async createPlaceWithRooms(
+    @UploadedFiles()
+    files: {
+      placeImage?: Express.Multer.File[];
+      roomImages?: Express.Multer.File[];
+    },
+    @Body('dto') rawDto: string,
+    @Req() req: Request,
+  ) {
     const googleUid = (req.user as { userId: string }).userId;
-    return this.placeService.createPlace(dto, googleUid);
+    const dto: CreatePlaceDto = JSON.parse(rawDto) as CreatePlaceDto;
+
+    return this.placeService.createPlace(
+      dto,
+      googleUid,
+      files.placeImage?.[0], // optional
+      files.roomImages ?? [],
+    );
   }
 
   @Get(':id')
