@@ -22,4 +22,13 @@ export class RoomReservationController {
     const googleUid = (req.user as { userId: string }).userId;
     return this.roomReservationService.getRevenue(googleUid);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/myRoomReservation')
+  async getMyPlaceReservationsGrouped(@Req() req: Request) {
+    const googleUid = (req.user as { userId: string }).userId;
+    return this.roomReservationService.getGroupedReservationsByMyPlace(
+      googleUid,
+    );
+  }
 }
