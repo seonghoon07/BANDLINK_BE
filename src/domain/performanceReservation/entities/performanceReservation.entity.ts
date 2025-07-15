@@ -12,7 +12,9 @@ export class PerformanceReservation {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.reservations)
+  @ManyToOne(() => User, (user) => user.reservations, {
+    onDelete: 'CASCADE',
+  })
   user: User;
 
   @ManyToOne(() => Performance, (performance) => performance.reservations)

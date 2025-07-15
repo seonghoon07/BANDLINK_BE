@@ -11,7 +11,9 @@ export class RoomReservation {
   @ManyToOne(() => Room, (room) => room.roomReservation)
   room: Room;
 
-  @ManyToOne(() => User, (user) => user.reservations)
+  @ManyToOne(() => User, (user) => user.reservations, {
+    onDelete: 'CASCADE',
+  })
   reservedBy: User;
 
   @ManyToOne(() => Place, (place) => place.rooms)

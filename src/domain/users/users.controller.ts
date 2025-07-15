@@ -5,7 +5,7 @@ import { UsersService } from '@/src/domain/users/users.service';
 
 interface AuthenticatedRequest extends Request {
   user: {
-    id: number;
+    userId: string;
   };
 }
 
@@ -16,12 +16,13 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('role')
   updateRole(@Req() req: AuthenticatedRequest, @Body() dto: UpdateUserRoleDto) {
-    return this.usersService.addRoleAndBandname(req.user.id, dto);
+    return this.usersService.addRoleAndBandname(req.user.userId, dto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
   getUser(@Req() req: AuthenticatedRequest) {
-    return this.usersService.findById(req.user.id);
+    console.log('req.user:', req.user);
+    return this.usersService.findById(req.user.userId);
   }
 }

@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { GoogleStrategy } from '@/src/domain/auth/strategies/google.strategy';
 import { GoogleAuthService } from '@/src/domain/auth/google-auth.service';
 import { UsersModule } from '@/src/domain/users/users.module';
+import { RedisProvider } from '@/src/global/redis/redis.provider';
 
 @Module({
   imports: [
@@ -22,6 +23,12 @@ import { UsersModule } from '@/src/domain/users/users.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleAuthService, GoogleStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    GoogleAuthService,
+    GoogleStrategy,
+    JwtStrategy,
+    RedisProvider,
+  ],
 })
 export class AuthModule {}

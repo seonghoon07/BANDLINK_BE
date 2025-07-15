@@ -40,7 +40,9 @@ export class Place {
   @Column({ type: 'time' })
   closeTime: string;
 
-  @ManyToOne(() => User, (user) => user.place)
+  @ManyToOne(() => User, (user) => user.place, {
+    onDelete: 'CASCADE',
+  })
   user: User;
 
   @OneToMany(() => Room, (room) => room.place)

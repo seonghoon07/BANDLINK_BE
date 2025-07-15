@@ -17,11 +17,19 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
+  authorizationParams(): Partial<Record<string, string>> {
+    return {
+      prompt: 'select_account',
+    };
+  }
+
   validate(accessToken: string, refreshToken: string, profile: Profile): any {
     const email = profile.emails?.[0]?.value;
     const name = profile.displayName;
 
     if (!email) throw new UnauthorizedException('No email in profile');
+
+    console.log(profile.id);
 
     return {
       user: {
