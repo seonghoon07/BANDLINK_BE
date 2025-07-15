@@ -40,7 +40,9 @@ export class Performance {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.performance)
+  @ManyToOne(() => User, (user) => user.performance, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userId' })
   user: User;
 

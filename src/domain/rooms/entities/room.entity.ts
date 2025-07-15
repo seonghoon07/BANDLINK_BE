@@ -29,7 +29,9 @@ export class Room {
   @Column({ type: 'varchar', length: 255, nullable: true })
   imageUrl: string;
 
-  @ManyToOne(() => Place, (place) => place.rooms)
+  @ManyToOne(() => Place, (place) => place.rooms, {
+    onDelete: 'CASCADE',
+  })
   place: Place;
 
   @OneToMany(() => RoomReservation, (reservation) => reservation.room)

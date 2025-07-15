@@ -30,15 +30,27 @@ export class User {
   @Column({ type: 'enum', enum: ['FAN', 'BAND', 'PLACE_OWNER'], array: true })
   roles: ('FAN' | 'BAND' | 'PLACE_OWNER')[];
 
-  @OneToOne(() => Place, (place) => place.user)
+  @OneToOne(() => Place, (place) => place.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   place: Place;
 
-  @OneToMany(() => Performance, (performance) => performance.user)
+  @OneToMany(() => Performance, (performance) => performance.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   performance: Performance;
 
-  @OneToMany(() => PerformanceReservation, (reservation) => reservation.user)
+  @OneToMany(() => PerformanceReservation, (reservation) => reservation.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   reservations: PerformanceReservation[];
 
-  @OneToMany(() => RoomReservation, (reservation) => reservation.reservedBy)
+  @OneToMany(() => RoomReservation, (reservation) => reservation.reservedBy, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   roomReservations: RoomReservation[];
 }

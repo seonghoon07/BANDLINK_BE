@@ -3,6 +3,7 @@ import {
   ConflictException,
   UnauthorizedException,
   Inject,
+  NotFoundException, BadRequestException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
@@ -87,7 +88,7 @@ export class AuthService {
       payload = this.jwtService.verify<JwtPayload>(refreshToken, {
         secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       });
-    } catch (err) {
+    } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
@@ -127,5 +128,12 @@ export class AuthService {
   async logout(userId: number): Promise<void> {
     const key = `refreshToken:user:${userId}`;
     await this.redis.del(key);
+  }
+
+  async delete(userId: string): Promise<void> {
+    if (!userId) throw new BadRequestException('유효하지 않은 유저 ID입니다');
+
+    await this.redis.del(`refreshToken:user:${userId}`);
+    await this.usersService.deleteUser(userId);
   }
 }

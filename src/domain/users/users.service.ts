@@ -31,8 +31,8 @@ export class UsersService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async findById(id: number): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id } });
+  async findById(id: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { googleUid: id } });
   }
 
   async createUser(userData: {
@@ -47,10 +47,10 @@ export class UsersService {
   }
 
   async addRoleAndBandname(
-    userId: number,
+    userId: string,
     dto: UpdateUserRoleDto,
   ): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id: userId });
+    const user = await this.userRepository.findOneBy({ googleUid: userId });
     if (!user) throw new NotFoundException('User not found');
 
     const alreadyHasRole = user.roles.includes(dto.role);
@@ -69,5 +69,8 @@ export class UsersService {
     }
 
     return this.userRepository.save(user);
+  }
+  async deleteUser(userId: string): Promise<void> {
+    await this.userRepository.delete({ googleUid: userId });
   }
 }

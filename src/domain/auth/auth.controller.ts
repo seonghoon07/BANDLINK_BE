@@ -16,6 +16,7 @@ import { RegisterUserDto } from './dto/registerUser.dto';
 
 interface AuthenticatedRequest extends Request {
   user: {
+    userId: string;
     id: number;
   };
 }
@@ -34,6 +35,7 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
+    console.log('Google login user:', req.user);
     await this.authService.handleGoogleCallback(req, res);
   }
 
@@ -69,5 +71,16 @@ export class AuthController {
     });
 
     res.status(200).json({ message: 'Logout successful' });
+  }
+
+  @Delete('/delete')
+  @UseGuards(AuthGuard('jwt'))
+  async withdraw(
+    @Req() req: AuthenticatedRequest,
+  ): Promise<{ message: string }> {
+    const user = req.user;
+    console.log(user);
+    await this.authService.delete(user.userId);
+    return { message: '회원 탈퇴가 완료되었습니다' };
   }
 }
