@@ -13,6 +13,13 @@ import { JwtAuthGuard } from '@/src/domain/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { ReserveRoomRequestDto } from '@/src/domain/rooms/dto/reserveRoomRequest.dto';
 
+interface AuthenticatedRequest extends Request {
+  user: {
+    userId: string;
+    id: number;
+  };
+}
+
 @Controller('rooms')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
@@ -51,9 +58,9 @@ export class RoomController {
   async reserveRoom(
     @Param('id') roomId: number,
     @Body() body: ReserveRoomRequestDto,
-    @Req() req: Request,
+    @Req() req: AuthenticatedRequest,
   ): Promise<void> {
-    const userId = (req.user as { id: string }).id;
+    const userId = req.user.userId;
 
     await this.roomService.reserveRoom({
       roomId,
