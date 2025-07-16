@@ -162,26 +162,28 @@ export class RoomService {
     const day = new Date(date);
     if (isNaN(day.getTime())) throw new BadRequestException('Invalid date');
 
+    const KST_OFFSET = 9 * 60 * 60 * 1000;
+    const kstDay = new Date(day.getTime() + KST_OFFSET);
+
     const startOfDay = new Date(
-      day.getFullYear(),
-      day.getMonth(),
-      day.getDate(),
+      kstDay.getFullYear(),
+      kstDay.getMonth(),
+      kstDay.getDate(),
       0,
       0,
       0,
       0,
     );
     const endOfDay = new Date(
-      day.getFullYear(),
-      day.getMonth(),
-      day.getDate(),
+      kstDay.getFullYear(),
+      kstDay.getMonth(),
+      kstDay.getDate(),
       23,
       59,
       59,
       999,
     );
 
-    // 예약이 오늘 날짜와 겹치는 것 전부 조회
     const reservations = await this.roomReservationRepository.find({
       where: [
         { room: { id: roomId }, startDate: Between(startOfDay, endOfDay) },
