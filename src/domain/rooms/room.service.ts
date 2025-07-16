@@ -127,7 +127,7 @@ export class RoomService {
 
     const user = await this.placeRepository.manager
       .getRepository(User)
-      .findOne({ where: { id: dto.userId } });
+      .findOne({ where: { googleUid: dto.userId } });
     if (!user) throw new NotFoundException('User not found');
 
     const overlapping = await this.roomReservationRepository.findOne({

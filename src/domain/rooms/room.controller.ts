@@ -53,7 +53,7 @@ export class RoomController {
     @Body() body: ReserveRoomRequestDto,
     @Req() req: Request,
   ): Promise<void> {
-    const userId = (req.user as { id: number }).id;
+    const userId = (req.user as { id: string }).id;
 
     await this.roomService.reserveRoom({
       roomId,
