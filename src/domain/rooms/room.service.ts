@@ -159,39 +159,36 @@ export class RoomService {
   }
 
   async getUnavailableHours(roomId: number, date: string): Promise<number[]> {
-    const day = new Date(date);
-    if (isNaN(day.getTime())) throw new BadRequestException('Invalid date');
+    const kstDay = new Date(date);
+    if (isNaN(kstDay.getTime())) throw new BadRequestException('Invalid date');
 
-    const KST_OFFSET = 9 * 60 * 60 * 1000;
-    const kstDay = new Date(day.getTime() + KST_OFFSET);
-
-    const startOfDay = new Date(
-      kstDay.getFullYear(),
-      kstDay.getMonth(),
-      kstDay.getDate(),
-      0,
-      0,
-      0,
-      0,
+    const utcStartOfDay = new Date(
+      Date.UTC(
+        kstDay.getFullYear(),
+        kstDay.getMonth(),
+        kstDay.getDate(),
+        0,
+        0,
+        0,
+      ) -
+        9 * 60 * 60 * 1000,
     );
-    const endOfDay = new Date(
-      kstDay.getFullYear(),
-      kstDay.getMonth(),
-      kstDay.getDate(),
-      23,
-      59,
-      59,
-      999,
+
+    const utcEndOfDay = new Date(
+      utcStartOfDay.getTime() + 24 * 60 * 60 * 1000 - 1,
     );
 
     const reservations = await this.roomReservationRepository.find({
       where: [
-        { room: { id: roomId }, startDate: Between(startOfDay, endOfDay) },
-        { room: { id: roomId }, endDate: Between(startOfDay, endOfDay) },
         {
           room: { id: roomId },
-          startDate: LessThanOrEqual(startOfDay),
-          endDate: MoreThanOrEqual(endOfDay),
+          startDate: Between(utcStartOfDay, utcEndOfDay),
+        },
+        { room: { id: roomId }, endDate: Between(utcStartOfDay, utcEndOfDay) },
+        {
+          room: { id: roomId },
+          startDate: LessThanOrEqual(utcStartOfDay),
+          endDate: MoreThanOrEqual(utcEndOfDay),
         },
       ],
     });
@@ -200,21 +197,25 @@ export class RoomService {
 
     for (const res of reservations) {
       const start = new Date(
-        Math.max(res.startDate.getTime(), startOfDay.getTime()),
+        Math.max(res.startDate.getTime(), utcStartOfDay.getTime()),
       );
-      const end = new Date(Math.min(res.endDate.getTime(), endOfDay.getTime()));
+      const end = new Date(
+        Math.min(res.endDate.getTime(), utcEndOfDay.getTime()),
+      );
 
-      const startHour = start.getHours();
+      const startHour = start.getUTCHours();
       const endHour =
-        end.getMinutes() === 0 && end.getSeconds() === 0
-          ? end.getHours()
-          : end.getHours() + 1;
+        end.getUTCMinutes() === 0 && end.getUTCSeconds() === 0
+          ? end.getUTCHours()
+          : end.getUTCHours() + 1;
 
       for (let hour = startHour; hour < endHour; hour++) {
         hours.add(hour);
       }
     }
 
-    return Array.from(hours).sort((a, b) => a - b);
+    return Array.from(hours)
+      .map((h) => (h + 9) % 24)
+      .sort((a, b) => a - b);
   }
 }
